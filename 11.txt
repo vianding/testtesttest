@@ -1,110 +1,168 @@
 %module qlib
 
 %{
-// Tell the C preprocessor what to expect
 #define GTO_USE_CONST
 #define WINAPI
 #include "qlib.h"
 %}
 
-// SWIG preprocessor side
 #define GTO_USE_CONST
 #define WINAPI
 
 %include "typemaps.i"
 %include "cstring.i"
 
-// === INPUT: Python list → const long* reqValue, long numreqValue
+///////////////////////////////////////////////////////////////////////////////
+// Input Arrays (e.g., reqValue)
+///////////////////////////////////////////////////////////////////////////////
 %typemap(in) (const long *reqValue, long numreqValue) {
     if (!PyList_Check($input)) {
         SWIG_exception_fail(SWIG_TypeError, "Expected a list of integers");
     }
-    $1 = (long *)malloc(PyList_Size($input) * sizeof(long));
     $2 = (long)PyList_Size($input);
-    for (Py_ssize_t i = 0; i < $2; ++i) {
-        PyObject *item = PyList_GetItem($input, i);
-        $1[i] = (long)PyLong_AsLong(item);
+    $1 = (long *)malloc($2 * sizeof(long));
+    for (long i = 0; i < $2; ++i) {
+        $1[i] = (long)PyLong_AsLong(PyList_GetItem($input, i));
     }
 }
 
-// === OUTPUT: double* outValue → list[float]
-%typemap(argout) double *outValue {
-    PyObject* out_list = PyList_New($1_dim0);
-    for (int i = 0; i < $1_dim0; ++i) {
-        PyList_SetItem(out_list, i, PyFloat_FromDouble($1[i]));
+%typemap(in) (long *dates, long numDates) {
+    if (!PyList_Check($input)) {
+        SWIG_exception_fail(SWIG_TypeError, "Expected list of integers");
     }
+    $2 = (long)PyList_Size($input);
+    $1 = (long *)malloc($2 * sizeof(long));
+    for (long i = 0; i < $2; ++i) {
+        $1[i] = (long)PyLong_AsLong(PyList_GetItem($input, i));
+    }
+}
+
+%typemap(in) (double *rates, long numDates) {
+    if (!PyList_Check($input)) {
+        SWIG_exception_fail(SWIG_TypeError, "Expected list of floats");
+    }
+    $2 = (long)PyList_Size($input);
+    $1 = (double *)malloc($2 * sizeof(double));
+    for (long i = 0; i < $2; ++i) {
+        $1[i] = PyFloat_AsDouble(PyList_GetItem($input, i));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Output Arrays
+///////////////////////////////////////////////////////////////////////////////
+
+%typemap(argout) double *outValue {
+    PyObject *out_list = PyList_New(numreqValue);
+    for (int i = 0; i < numreqValue; ++i)
+        PyList_SetItem(out_list, i, PyFloat_FromDouble($1[i]));
     $result = out_list;
 }
 %typemap(out) double *outValue {}
 
-// === OUTPUT: long* outValue → list[int]
 %typemap(argout) long *outValue {
-    PyObject* out_list = PyList_New($1_dim0);
-    for (int i = 0; i < $1_dim0; ++i) {
+    PyObject *out_list = PyList_New(numreqValue);
+    for (int i = 0; i < numreqValue; ++i)
         PyList_SetItem(out_list, i, PyLong_FromLong($1[i]));
-    }
     $result = out_list;
 }
 %typemap(out) long *outValue {}
 
-// === OUTPUT: long* outStatus → list[int]
 %typemap(argout) long *outStatus {
-    PyObject* out_list = PyList_New($1_dim0);
-    for (int i = 0; i < $1_dim0; ++i) {
+    PyObject *out_list = PyList_New(numreqValue);
+    for (int i = 0; i < numreqValue; ++i)
         PyList_SetItem(out_list, i, PyLong_FromLong($1[i]));
-    }
     $result = out_list;
 }
 %typemap(out) long *outStatus {}
 
-// === OUTPUT: long* outNumFailures → int
 %typemap(argout) long *outNumFailures {
     $result = PyLong_FromLong(*$1);
 }
 %typemap(out) long *outNumFailures {}
 
-// === OUTPUT: long* outVersion → int
 %typemap(argout) long *outVersion {
     $result = PyLong_FromLong(*$1);
 }
 %typemap(out) long *outVersion {}
 
-// === OUTPUT: long* outBondType → int
 %typemap(argout) long *outBondType {
     $result = PyLong_FromLong(*$1);
 }
 %typemap(out) long *outBondType {}
 
-// === OUTPUT: double* outRisk → float
 %typemap(argout) double *outRisk {
     $result = PyFloat_FromDouble(*$1);
 }
 %typemap(out) double *outRisk {}
 
-// === OUTPUT: double* outAccruedInterest → float
 %typemap(argout) double *outAccruedInterest {
     $result = PyFloat_FromDouble(*$1);
 }
 %typemap(out) double *outAccruedInterest {}
 
-// === OUTPUT: double* price → float
 %typemap(argout) double *price {
     $result = PyFloat_FromDouble(*$1);
 }
 %typemap(out) double *price {}
 
-// === OUTPUT: long* outNoOfCashFlows → int
-%typemap(argout) long *outNoOfCashFlows {
-    $result = PyLong_FromLong(*$1);
+%typemap(argout) double *yield {
+    $result = PyFloat_FromDouble(*$1);
 }
-%typemap(out) long *outNoOfCashFlows {}
+%typemap(out) double *yield {}
 
-// === OUTPUT: long** dates (used in holiday load) → list[int]
+%typemap(argout) long *outDates {
+    PyObject *out_list = PyList_New(numoutDates);
+    for (int i = 0; i < numoutDates; ++i)
+        PyList_SetItem(out_list, i, PyLong_FromLong($1[i]));
+    $result = out_list;
+}
+%typemap(out) long *outDates {}
+
+%typemap(argout) long *outAccrualStartDates {
+    PyObject *out_list = PyList_New(numoutDates);
+    for (int i = 0; i < numoutDates; ++i)
+        PyList_SetItem(out_list, i, PyLong_FromLong($1[i]));
+    $result = out_list;
+}
+%typemap(out) long *outAccrualStartDates {}
+
+%typemap(argout) long *outAccrualEndDates {
+    PyObject *out_list = PyList_New(numoutDates);
+    for (int i = 0; i < numoutDates; ++i)
+        PyList_SetItem(out_list, i, PyLong_FromLong($1[i]));
+    $result = out_list;
+}
+%typemap(out) long *outAccrualEndDates {}
+
+%typemap(argout) double *outPrincipalAmounts {
+    PyObject *out_list = PyList_New(numoutDates);
+    for (int i = 0; i < numoutDates; ++i)
+        PyList_SetItem(out_list, i, PyFloat_FromDouble($1[i]));
+    $result = out_list;
+}
+%typemap(out) double *outPrincipalAmounts {}
+
+%typemap(argout) double *outCouponAmounts {
+    PyObject *out_list = PyList_New(numoutDates);
+    for (int i = 0; i < numoutDates; ++i)
+        PyList_SetItem(out_list, i, PyFloat_FromDouble($1[i]));
+    $result = out_list;
+}
+%typemap(out) double *outCouponAmounts {}
+
+%typemap(argout) double *outYearFractions {
+    PyObject *out_list = PyList_New(numoutDates);
+    for (int i = 0; i < numoutDates; ++i)
+        PyList_SetItem(out_list, i, PyFloat_FromDouble($1[i]));
+    $result = out_list;
+}
+%typemap(out) double *outYearFractions {}
+
 %typemap(argout) long **dates {
     PyObject *out_list = PyList_New(*numDates);
-    for (int i = 0; i < *numDates; ++i) {
+    for (int i = 0; i < *numDates; ++i)
         PyList_SetItem(out_list, i, PyLong_FromLong((*$1)[i]));
-    }
     $result = out_list;
 }
 %typemap(out) long **dates {}
