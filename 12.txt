@@ -1,0 +1,88 @@
+%module qlib
+
+%{
+#define GTO_USE_CONST
+#define WINAPI
+#include "qlib.h"
+%}
+
+#define GTO_USE_CONST
+#define WINAPI
+
+%include "typemaps.i"
+%include "cstring.i"
+
+// --- SAFE INPUT HANDLING ---
+%apply (const long* IN_ARRAY1, long DIM1) {
+    (const long* reqValue, long numreqValue),
+    (const long* stepDates, long numStepDates),
+    (const long* sinkDates, long numSinkDates),
+    (const long* exDivDates, long numExDivDates),
+    (const long* recordDates, long numExDivDates),
+    (const long* paymentDates, long numExDivDates),
+    (const long* dates, long numDates)
+};
+
+%apply (const double* IN_ARRAY1, long DIM1) {
+    (const double* stepRates, long numStepDates),
+    (const double* sinkAmounts, long numSinkDates),
+    (const double* dividendAmounts, long numExDivDates),
+    (const double* rates, long numDates)
+};
+
+// --- FUNCTION-SPECIFIC ARGOUT ---
+%typemap(argout) double *outValue_QLIB_BOND_CALC_ACCRUED_INTEREST2 {
+    PyObject *out_list = PyList_New(arg4);
+    for (int i = 0; i < arg4; ++i)
+        PyList_SetItem(out_list, i, PyFloat_FromDouble($1[i]));
+    $result = out_list;
+}
+%typemap(out) double *outValue_QLIB_BOND_CALC_ACCRUED_INTEREST2 {}
+
+%typemap(argout) long *outStatus_QLIB_BOND_CALC_ACCRUED_INTEREST2 {
+    PyObject *out_list = PyList_New(arg4);
+    for (int i = 0; i < arg4; ++i)
+        PyList_SetItem(out_list, i, PyLong_FromLong($1[i]));
+    $result = out_list;
+}
+%typemap(out) long *outStatus_QLIB_BOND_CALC_ACCRUED_INTEREST2 {}
+
+%typemap(argout) double *price_QLIB_BOND_CALC_PRICE_FROM_YIELD3 {
+    $result = PyFloat_FromDouble(*$1);
+}
+%typemap(out) double *price_QLIB_BOND_CALC_PRICE_FROM_YIELD3 {}
+
+%typemap(argout) double *yield_QLIB_BOND_CALC_YIELD_FROM_PRICE3 {
+    $result = PyFloat_FromDouble(*$1);
+}
+%typemap(out) double *yield_QLIB_BOND_CALC_YIELD_FROM_PRICE3 {}
+
+%typemap(argout) long *outDates_QLIB_BOND_CALC_COUPON_DATE2 {
+    PyObject *out_list = PyList_New(arg3);
+    for (int i = 0; i < arg3; ++i)
+        PyList_SetItem(out_list, i, PyLong_FromLong($1[i]));
+    $result = out_list;
+}
+%typemap(out) long *outDates_QLIB_BOND_CALC_COUPON_DATE2 {}
+
+%typemap(argout) double *outRisk_QLIB_BOND_CALC_IL_RISK_FROM_YIELD {
+    $result = PyFloat_FromDouble(*$1);
+}
+%typemap(out) double *outRisk_QLIB_BOND_CALC_IL_RISK_FROM_YIELD {}
+
+%typemap(argout) double *price_QLIB_BOND_CALC_IL_PRICE_FROM_YIELD {
+    $result = PyFloat_FromDouble(*$1);
+}
+%typemap(out) double *price_QLIB_BOND_CALC_IL_PRICE_FROM_YIELD {}
+
+%typemap(argout) double *yield_QLIB_BOND_CALC_IL_YIELD_FROM_PRICE {
+    $result = PyFloat_FromDouble(*$1);
+}
+%typemap(out) double *yield_QLIB_BOND_CALC_IL_YIELD_FROM_PRICE {}
+
+%typemap(argout) double *outRisk_QLIB_BOND_CALC_PYD_RISK {
+    $result = PyFloat_FromDouble(*$1);
+}
+%typemap(out) double *outRisk_QLIB_BOND_CALC_PYD_RISK {}
+
+%include "qlib.h"
