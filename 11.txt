@@ -15,42 +15,31 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Input Arrays (e.g., reqValue)
 ///////////////////////////////////////////////////////////////////////////////
-%typemap(in) (const long *reqValue, long numreqValue) {
-    if (!PyList_Check($input)) {
-        SWIG_exception_fail(SWIG_TypeError, "Expected a list of integers");
-    }
-    $2 = (long)PyList_Size($input);
-    $1 = (long *)malloc($2 * sizeof(long));
-    for (long i = 0; i < $2; ++i) {
-        $1[i] = (long)PyLong_AsLong(PyList_GetItem($input, i));
-    }
-}
 
-%typemap(in) (long *dates, long numDates) {
-    if (!PyList_Check($input)) {
-        SWIG_exception_fail(SWIG_TypeError, "Expected list of integers");
-    }
-    $2 = (long)PyList_Size($input);
-    $1 = (long *)malloc($2 * sizeof(long));
-    for (long i = 0; i < $2; ++i) {
-        $1[i] = (long)PyLong_AsLong(PyList_GetItem($input, i));
-    }
-}
+// ---- array
 
-%typemap(in) (double *rates, long numDates) {
-    if (!PyList_Check($input)) {
-        SWIG_exception_fail(SWIG_TypeError, "Expected list of floats");
-    }
-    $2 = (long)PyList_Size($input);
-    $1 = (double *)malloc($2 * sizeof(double));
-    for (long i = 0; i < $2; ++i) {
-        $1[i] = PyFloat_AsDouble(PyList_GetItem($input, i));
-    }
-}
 
-///////////////////////////////////////////////////////////////////////////////
-// Output Arrays
-///////////////////////////////////////////////////////////////////////////////
+// For input/output arrays
+%apply (long* IN_ARRAY1, long DIM1) {
+    (long* exDivDates, long numExDivDates),
+    (long* recordDates, long numExDivDates),
+    (long* paymentDates, long numExDivDates),
+    (long* sinkDates, long numSinkDates),
+    (long* structuredCouponDates, long numStructuredCouponDates),
+    (long* stepDates, long numStepDates),
+    (long* callDates, long numCallDates),
+    (long* reqValue, long numreqValue),
+    (long* dates, long numDates)
+};
+
+%apply (double* IN_ARRAY1, long DIM1) {
+    (double* dividendAmounts, long numExDivDates),
+    (double* sinkAmounts, long numSinkDates),
+    (double* structuredCouponRates, long numStructuredCouponDates),
+    (double* stepRates, long numStepDates),
+    (double* callPrices, long numCallDates),
+    (double rates, long numDates)
+};
 
 %typemap(argout) double *outValue {
     PyObject *out_list = PyList_New(numreqValue);
@@ -90,6 +79,30 @@
     $result = PyLong_FromLong(*$1);
 }
 %typemap(out) long *outBondType {}
+
+%typemap(argout) double *dividendAmounts {
+    PyObject *out_list = PyList_New(numExDivDates);
+    for (int i = 0; i < numExDivDates; ++i)
+        PyList_SetItem(out_list, i, PyFloat_FromDouble($1[i]));
+    $result = out_list;
+}
+%typemap(out) double *dividendAmounts {}
+
+%typemap(argout) double *stepRates {
+    PyObject *out_list = PyList_New(numStepDates);
+    for (int i = 0; i < numStepDates; ++i)
+        PyList_SetItem(out_list, i, PyFloat_FromDouble($1[i]));
+    $result = out_list;
+}
+%typemap(out) double *stepRates {}
+
+%typemap(argout) double *sinkAmounts {
+    PyObject *out_list = PyList_New(numSinkDates);
+    for (int i = 0; i < numSinkDates; ++i)
+        PyList_SetItem(out_list, i, PyFloat_FromDouble($1[i]));
+    $result = out_list;
+}
+%typemap(out) double *sinkAmounts {}
 
 %typemap(argout) double *outRisk {
     $result = PyFloat_FromDouble(*$1);
@@ -158,6 +171,14 @@
     $result = out_list;
 }
 %typemap(out) double *outYearFractions {}
+
+%typemap(argout) long *outDates {
+    PyObject *out_list = PyList_New(numoutDates);
+    for (int i = 0; i < numoutDates; ++i)
+        PyList_SetItem(out_list, i, PyLong_FromLong($1[i]));
+    $result = out_list;
+}
+%typemap(out) long *outDates {}
 
 %typemap(argout) long **dates {
     PyObject *out_list = PyList_New(*numDates);
