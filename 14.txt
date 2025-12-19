@@ -1,0 +1,130 @@
+\section*{Model Setup and Notation}
+
+Let the model parameters be decomposed as
+\[
+x = (x_{\text{base}}, x_{\text{aug}}).
+\]
+
+The total CDS spread is defined as
+\[
+s_{\text{total}} = s_1 + s_2(x_{\text{base}}),
+\]
+where:
+\begin{itemize}
+  \item $s_1$ is a static market input,
+  \item $s_2(x_{\text{base}})$ is the par CDS spread implied by a base credit model.
+\end{itemize}
+
+The augmented model CDS pricing function satisfies the par condition
+\[
+V(x_{\text{aug}}, s_{\text{total}}) = 0.
+\]
+
+---
+
+\section*{Base Model Spread}
+
+The base-model par spread is given by
+\[
+s_2(x_{\text{base}})
+= \frac{DL_{\text{base}}(x_{\text{base}})}{A_{\text{base}}(x_{\text{base}})},
+\]
+where:
+\begin{itemize}
+  \item $DL_{\text{base}}$ is the protection leg PV,
+  \item $A_{\text{base}}$ is the risky PV01.
+\end{itemize}
+
+Using the quotient rule, its derivative is
+\[
+\frac{ds_2}{dx_{\text{base}}}
+=
+\frac{1}{A_{\text{base}}}
+\left(
+\frac{dDL_{\text{base}}}{dx_{\text{base}}}
+-
+s_2 \frac{dA_{\text{base}}}{dx_{\text{base}}}
+\right).
+\]
+
+---
+
+\section*{Total Differentiation of the Par Condition}
+
+Differentiating the par condition
+\[
+V(x_{\text{aug}}, s_1 + s_2(x_{\text{base}})) = 0
+\]
+yields
+\[
+\frac{\partial V}{\partial x_{\text{aug}}} \, dx_{\text{aug}}
++
+\frac{\partial V}{\partial s_{\text{total}}}
+\left(
+ds_1 + \frac{ds_2}{dx_{\text{base}}} \, dx_{\text{base}}
+\right)
+= 0.
+\]
+
+Solving for $ds_1$ gives
+\[
+ds_1
+=
+-\frac{1}{\frac{\partial V}{\partial s_{\text{total}}}}
+\left(
+\frac{\partial V}{\partial x_{\text{aug}}} \, dx_{\text{aug}}
++
+\frac{\partial V}{\partial s_{\text{total}}}
+\frac{ds_2}{dx_{\text{base}}} \, dx_{\text{base}}
+\right).
+\]
+
+---
+
+\section*{Jacobian of $s_1$ with Respect to Model Parameters}
+
+Writing $ds_1 = \frac{ds_1}{dx} \, dx$, the Jacobian of the implied market spread
+with respect to $x = (x_{\text{base}}, x_{\text{aug}})$ is
+
+\[
+\boxed{
+\frac{ds_1}{dx}
+=
+\left[
+-\frac{ds_2}{dx_{\text{base}}}
+\;\middle|\;
+-\frac{1}{\frac{\partial V}{\partial s_{\text{total}}}}
+\frac{\partial V}{\partial x_{\text{aug}}}
+\right].
+}
+\]
+
+Substituting the expression for $\frac{ds_2}{dx_{\text{base}}}$:
+
+\[
+\boxed{
+\frac{ds_1}{dx}
+=
+\left[
+-\frac{1}{A_{\text{base}}}
+\left(
+\frac{dDL_{\text{base}}}{dx_{\text{base}}}
+-
+s_2 \frac{dA_{\text{base}}}{dx_{\text{base}}}
+\right)
+\;\middle|\;
+-\frac{1}{\frac{\partial V}{\partial s_{\text{total}}}}
+\frac{\partial V}{\partial x_{\text{aug}}}
+\right].
+}
+\]
+
+---
+
+\section*{Interpretation}
+
+\begin{itemize}
+  \item The first block captures how changes in the base model alter the implied spread $s_2$ and must be offset by $s_1$.
+  \item The second block captures how changes in the augmented model parameters affect the CDS PV directly.
+  \item The derivative $\partial V / \partial s_{\text{total}}$ is the CS01 of the augmented model.
+\end{itemize}
