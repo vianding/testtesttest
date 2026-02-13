@@ -1,0 +1,222 @@
+# Output style
+- Don’t be terse. Prefer complete answers.
+- When coding: explain approach briefly, then provide the code, then give a quick “how to run / test”.
+- If you’re unsure, make a reasonable assumption and state it. Don’t stall with questions unless blocked.
+
+# Coding behavior
+- Provide changes as a minimal diff/patch or clearly labeled file sections.
+- After edits, run or suggest the exact command(s) to verify (tests/lint/build).
+- If a command is safe/read-only, feel free to run it. If it’s destructive, ask first.
+
+# Debugging
+- When there’s an error, list likely causes (top 3), then try the fastest check first.
+
+
+=====================
+# Project AI Rules (Windsurf)
+
+## Output quality
+- Avoid short answers. Provide complete steps: plan -> change -> verify.
+- If info is missing, make a reasonable assumption and state it (don’t stall).
+
+## Testing as default
+- Follow TDD when feasible: failing test -> minimal fix -> refactor.
+- Use the 3-layer strategy:
+  1) unit/pure-logic tests
+  2) component/adapter tests with minimal mocking
+  3) integration tests with real deps where practical
+- Prefer integration tests when behavior depends on interactions; mock only external services/time/random.
+
+## Verification behavior
+- After code changes, run or propose exact commands to verify (tests/lint/typecheck/build).
+- If you can run safe read-only commands, do it. For destructive actions (deploy, DB reset, deleting files), ask first.
+
+## Data & fixtures
+- Use realistic fixtures; cover format variants and edge cases.
+- Tests must be deterministic and isolated (no reliance on developer machine state).
+
+## Docs
+- Follow docs/TESTING_GUIDELINES.md for detailed testing conventions.
+
+
+=================
+
+# Testing & Delivery Guidelines
+
+This document defines how we write tests, ship changes, and keep quality high.  
+Default principle: **make changes easy to verify** (tests + repeatable commands).
+
+---
+
+## 🧪 Command Cheat Sheet
+
+> Keep this section accurate and up to date.
+
+- **Run all tests:** `<insert command>` (e.g., `npm test`, `pytest`, `cargo test`)
+- **Run targeted tests:** `<insert command>` (e.g., `npm run test -- <pattern>`)
+- **Watch mode:** `<insert command>`
+- **Coverage report:** `<insert command>`
+- **Integration tests:** `<insert command>`
+- **Lint / format:** `<insert command>`
+- **Typecheck / build:** `<insert command>`
+
+**Default dev loop:** run the full test command most of the time so you catch regressions early.
+
+---
+
+## 🚀 Deployment / Release Safety
+
+We usually have more than one deploy mode.
+
+- **Safe / dev-only deploy:** `<insert command>` ✅  
+- **Shared / staging deploy:** `<insert command>` ⚠️  
+- **Global / production deploy:** `<insert command>` ⛔ (use with caution)
+
+Rules:
+1. **Never run global/prod deploy for quick testing.**
+2. Prefer **dev/staging** until tests and checks pass.
+3. If a command is destructive (drops DB, wipes data, deploys to prod), it must be **explicitly confirmed**.
+
+---
+
+## Core Testing Philosophy
+
+### TDD (preferred default)
+1. Write a failing test that describes the expected behavior.
+2. Implement the **minimum** code to make the test pass.
+3. Run tests to confirm.
+4. Refactor for readability/performance while keeping tests green.
+
+> If TDD isn’t practical (legacy code / unclear behavior), still aim for:  
+> **reproduce → test → fix → verify.**
+
+---
+
+## Three-Layer Test Strategy
+
+We organize tests into three layers. Pick the lowest layer that still gives confidence.
+
+### Layer 1 — Pure Logic Tests (fastest)
+- Test business rules, parsing, transformations, calculations.
+- No network, no UI framework, no database (unless it’s pure in-memory).
+- Deterministic: time, random, environment are controlled.
+
+### Layer 2 — Component / Adapter Tests
+- Test “how we talk to dependencies” (web framework handlers, UI rendering, SDK wrappers).
+- Use mocks/stubs for external APIs and SDKs.
+- Focus on contract correctness: inputs/outputs, formatting, error mapping.
+
+### Layer 3 — Integration Tests (highest confidence)
+- Test multiple components together in a realistic environment.
+- Minimal mocking.
+- Prefer running against test instances (local containers or ephemeral test env).
+
+**Rule of thumb:**  
+- Layer 1 gives speed.  
+- Layer 3 gives trust.  
+- Layer 2 keeps boundaries honest.
+
+---
+
+## Integration-First, Minimal Mocking
+
+- Prefer **integration tests** when behavior depends on interactions (DB + service + business logic).
+- Use **minimal mocking**:
+  - Mock only *external* dependencies or *hard-to-control* things (time, random, external APIs, paid services).
+- If a test becomes fragile due to extensive mocking, consider upgrading it to an integration test.
+
+---
+
+## Data & Fixtures
+
+- Use **realistic fixtures** based on observed real-world responses/events.
+- Cover **variants**:
+  - missing fields
+  - additional fields
+  - different data shapes
+  - edge cases (empty, null, 0, huge values)
+- Avoid assuming upstream data is consistent unless contractually guaranteed.
+
+**Guideline:** tests should encode what we *know*, not what we *hope*.
+
+---
+
+## Databases & State
+
+Prefer isolation and repeatability:
+
+- **In-memory DB** where possible (fast, isolated).
+- Otherwise use an ephemeral DB:
+  - a fresh schema per test suite
+  - or unique namespace/schema per run
+- Tests should not depend on developer machine state.
+
+If the project uses migrations:
+- integration tests should validate migrations apply cleanly
+- schema expectations should be explicit
+
+---
+
+## External Services (Cache, Queues, Search, etc.)
+
+- Prefer **real service instances** when practical (local container is fine) with isolated keys/namespaces.
+- If you must mock:
+  - mock the boundary (client wrapper) rather than internals
+  - keep behavior close to real service semantics
+- Ensure cleanup:
+  - unique prefixes per test run
+  - teardown wipes only those keys/resources
+
+---
+
+## Test Quality Rules
+
+- Tests must be:
+  - deterministic
+  - independent
+  - readable (clear Arrange/Act/Assert)
+  - fast enough to run frequently
+- A bug fix should come with a test that would have caught it.
+
+---
+
+## Implementation Guidelines (for any change)
+
+When making a change, include:
+1. **What** changed (brief)
+2. **Why** (brief)
+3. **How to verify** (exact commands)
+4. Tests added/updated:
+   - which layer(s)
+   - what cases covered
+5. Any rollout/deploy notes (if relevant)
+
+---
+
+## “Do Not” List
+
+- Do not add “legacy fallbacks” unless explicitly required and documented.
+- Do not ship behavior changes without tests unless it’s a deliberate emergency fix (and then add tests ASAP).
+- Do not rely on real user data for tests.
+- Do not write tests that require manual steps to pass.
+
+---
+
+## Suggested Repo Structure (optional)
+
+- `tests/unit/` (Layer 1)
+- `tests/component/` (Layer 2)
+- `tests/integration/` (Layer 3)
+- `tests/fixtures/` (shared realistic samples)
+- `docs/` (this document + how to run tests)
+
+---
+
+## Appendix: Template for New Test Case
+
+**Given:** (context / setup)  
+**When:** (action)  
+**Then:** (assert expected outcomes)  
+**And:** (assert edge behaviors / error cases)
+
+Add fixtures if needed, and keep mocks minimal.
