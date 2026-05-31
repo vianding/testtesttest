@@ -1,79 +1,92 @@
-Please implement a new market input type for the existing credit model: **Average Hazard Rate** / **Credit Zero Rate**.
+I think the current plan is solving a simplified endpoint-preserving conversion, but not the actual requirement.
 
-Context:
+The requirement is not simply:
 
-* RW provides continuously-compounded zero rates, linearly interpolated between tenor dates.
-* In credit-model terms, these zero rates correspond to **average hazard rates**, not flat-forward hazard rates.
-* Current `Hazard Rate` input treats the supplied values as instantaneous / flat-forward hazards, which gives the wrong survival-curve shape when the zero curve is nonzero and sloped.
-* We want the model perturbation space and reported risk to be in zero-rate / average-hazard space.
+`average hazard pillars -> piecewise-flat forward hazard pillars -> register as Hazard Rate`.
 
-Required behavior:
+The requirement is to add a new market input type whose native representation and risk space are **Average Hazard Rate / Credit Zero Rate**, matching RW’s zero-rate curve construction.
 
-1. Add a new input type, e.g. `AverageHazardRate` or `CreditZeroRate`.
-2. Interpret input node value (a_i) at time (t_i) as:
-   [
-   a_i = H(t_i)/t_i
-   ]
-   where (H(t)) is cumulative hazard.
-3. Construct survival probability as:
-   [
-   Q(t_i)=\exp(-a_i t_i)
-   ]
-4. If interpolation is required between nodes, preserve RW-style linear interpolation in average hazard / zero-rate space:
+Key points:
+
+1. RW input is sparse zero-rate / average-hazard nodes with **linear interpolation in zero-rate space**:
    [
    a(t)=\text{linearInterp}(a_i)
    ]
+
+2. The survival curve should be evaluated as:
+   [
+   Q(t)=\exp(-a(t)t)
+   ]
+
+3. Therefore the model should preserve this curve definition at actual evaluation dates, especially:
+
+* bond cashflow dates
+* risk dates
+* curve pillar dates
+* any internal dates used by the pricing/risk engine
+
+4. The formula:
+   [
+   h_k=\frac{a_k t_k-a_{k-1}t_{k-1}}{t_k-t_{k-1}}
+   ]
+   only creates a piecewise-flat forward hazard that matches survival at pillar endpoints. It does **not** fully preserve RW’s linear-zero interpolation between sparse points.
+
+5. If the engine internally requires flat-forward hazard, we can still convert to internal hazards, but the conversion should be based on the actual evaluation grid. For each interval ([u_{j-1},u_j]), define:
+   [
+   H(u)=a(u)u
+   ]
+   [
+   h_j=\frac{H(u_j)-H(u_{j-1})}{u_j-u_{j-1}}
+   ]
+   where (a(u)) is RW-style linearly interpolated zero/average hazard.
+
+6. Risk should be analytic/Jacobian-based, not primarily bump-and-reval.
+   The reported risk should be:
+   [
+   \frac{\partial PV}{\partial a_i}
+   ]
+   where (a_i) is the input zero-rate / average-hazard node.
+
+7. The Jacobian needs to include interpolation weights. For any evaluation date (u) between input nodes (t_i,t_{i+1}):
+   [
+   a(u)=w_i(u)a_i+w_{i+1}(u)a_{i+1}
+   ]
+   [
+   Q(u)=\exp(-a(u)u)
+   ]
+   so:
+   [
+   \frac{\partial Q(u)}{\partial a_i}
+   =
+   -uQ(u)w_i(u)
+   ]
+   and similarly for (a_{i+1}).
+
+8. If we convert to internal piecewise-flat hazards on an evaluation grid, the chain rule should be:
+   [
+   \frac{\partial PV}{\partial a_i}
+   =
+   \sum_j
+   \frac{\partial PV}{\partial h_j}
+   \frac{\partial h_j}{\partial a_i}
+   ]
+   where:
+   [
+   h_j=\frac{H(u_j)-H(u_{j-1})}{u_j-u_{j-1}}
+   ]
    and:
    [
-   Q(t)=\exp(-a(t)t)
+   H(u)=a(u)u
    ]
-5. If the pricing engine internally requires flat-forward hazard, convert from cumulative hazard:
-   [
-   H_i=a_i t_i
-   ]
-   [
-   h_i=\frac{H_i-H_{i-1}}{t_i-t_{i-1}}
-   ]
-   but keep the risk perturbation/reporting space as average-hazard / zero-rate space.
+   This Jacobian is not just the simple bidiagonal node-to-node formula unless the evaluation grid equals the sparse input pillar grid.
 
-Risk/Jacobian requirement:
+9. Bump-and-reval can be used only as a validation check:
 
-* The reported sensitivity should be with respect to the average-hazard node (a_i), not survival probability and not forward hazard.
-* For survival-probability conversion:
-  [
-  \frac{\partial Q_i}{\partial a_i}=-t_i Q_i
-  ]
-* Therefore:
-  [
-  \frac{\partial PV}{\partial a_i}
-  ================================
+* bump one average-hazard input node by 1bp
+* rebuild RW-style linear-zero curve
+* rebuild survival/internal hazard curve
+* compare finite-diff result to analytic Jacobian risk
 
-  \frac{\partial PV}{\partial Q_i}
-  \cdot (-t_i Q_i)
-  ]
-* A 1bp bump should mean:
-  [
-  a_i \rightarrow a_i + 0.0001
-  ]
-  or for flat CS01:
-  [
-  a(t) \rightarrow a(t)+0.0001
-  ]
+But the implementation should be analytic-first.
 
-Validation tests:
-
-1. If all average-hazard inputs are zero, output should match the existing zero-credit-spread / hazard-zero case.
-2. For a nonzero sloped zero curve, survival should match:
-   [
-   Q(t)=\exp(-a(t)t)
-   ]
-   at both pillar dates and tested interpolation dates.
-3. Flat +1bp average-hazard shift should reproduce zero-rate CS01 behavior.
-4. Bucketed KRS should be reported in average-hazard / zero-rate space, not forward-hazard space.
-5. Compare against the old `Hazard Rate` input to confirm differences appear only when the input zero curve is nonzero/sloped.
-
-Implementation preference:
-
-* Avoid overloading existing `Hazard Rate` or `Survival Probability` semantics.
-* Add a clearly named input mode so curve construction and risk bump space are explicit.
-* Keep CDS spread logic out of this path; CDS bootstrap/recovery is not relevant for this use case.
+So please revise the plan from “convert sparse average-hazard pillars into hazard pillars” to “add native AverageHazardRate / CreditZeroRate input with RW-style linear-zero interpolation and analytic Jacobian back to input nodes.”
