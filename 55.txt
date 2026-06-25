@@ -1,0 +1,167 @@
+Your task is to implement the Python prototype for the RCF / LP option pricing framework based on the PDF model.
+
+Core understanding:
+
+The PDF model is not primarily an LP stochastic model. It is a revolving credit facility pricing framework focused on stochastic credit quality, stochastic drawdown / CCF, EAD, expected loss, WWR, capital, liquidity cost, and breakeven spread solving.
+
+The key innovation is:
+
+credit deterioration / macro stress
+→ higher drawdown / CCF
+→ higher EAD when default intensity is also high
+→ WWR impact on EL and facility spread.
+
+Phase 1: Implement PDF core model only.
+
+Implement the following modules:
+
+1. Hazard / credit quality process
+
+Use CIR dynamics for borrower default intensity:
+
+dλ = κ(θ - λ)dt + σ√λ dW
+
+Requirements:
+
+* monthly time grid
+* Monte Carlo path simulation
+* non-negative λ
+* configurable κ, θ, σ, λ0
+* reproducible random seed
+* vectorized NumPy implementation where possible
+
+2. Macro factor
+
+Implement a simple macro stress factor as either:
+
+* deterministic input series, or
+* stochastic AR(1) / OU-style process.
+
+Keep it modular. Do not over-engineer.
+
+3. CCF / drawdown model
+
+Implement:
+
+CCF(t) = CCF_base + β(λ(t) - λ_bar) + γ macro(t)
+
+Then clamp CCF to [0, 1].
+
+4. EAD model
+
+EAD(t) = committed_amount × CCF(t)
+
+Support optional already-drawn amount if needed.
+
+5. Expected loss
+
+For each path and time step, compute approximate EL contribution:
+
+EL_t ≈ λ(t) × LGD × EAD(t) × discount_factor(t) × dt
+
+Aggregate across time and paths.
+
+Report:
+
+* expected EL
+* average EAD profile
+* average λ profile
+* WWR impact versus baseline CCF model
+
+6. Spread solver
+
+Solve breakeven spread s such that:
+
+PV(spread × EAD) = EL + capital_cost + liquidity_cost
+
+For Phase 1:
+
+* capital_cost is an external input
+* liquidity_cost is an external input
+* discount curve can be deterministic / flat initially
+* spread solver can be closed-form if PV01-like denominator is available.
+
+7. Diagnostics
+
+Produce:
+
+* base case result
+* sensitivity to β
+* sensitivity to γ
+* sensitivity to λ volatility
+* comparison against no-WWR case where CCF is fixed
+
+Phase 1 should not implement the Excel LP OU option model unless needed. Treat liquidity cost / LP option cost as an external plug-in input.
+
+Phase 2: LP module / Excel reconciliation
+
+Only after Phase 1 is stable, implement a separate LP module:
+
+LP(t) follows OU dynamics:
+
+dLP = κ_LP(θ_LP - LP)dt + σ_LP dW_LP
+
+Then compute LP option cost using:
+
+* simple Monte Carlo first
+* Longstaff-Schwartz later if exercise/hold optionality is required.
+
+This module should provide:
+
+liquidity_cost = base_LP + LP_option_cost
+
+The LP module should remain separate from the PDF credit / WWR module.
+
+Phase 3: Joint dynamics extension
+
+Do not hard-code independence. Design the simulation engine so later we can support either:
+
+A. Correlated Brownian shocks:
+
+corr(dW_credit, dW_LP) = ρ
+
+or
+
+B. Shared macro stress factor:
+
+macro stress Z(t)
+→ drives λ(t)
+→ drives CCF(t)
+→ drives LP(t)
+
+The preferred long-term design is separate marginal state variables linked by a joint model, not one giant process.
+
+Implementation style:
+
+* Use clear Python classes or dataclasses for parameters.
+* Keep modules small and testable.
+* Separate model assumptions from numerical engine.
+* Avoid embedding business constants in logic.
+* Add basic unit tests:
+
+  * CIR paths stay non-negative
+  * CCF is bounded [0,1]
+  * EL increases when β increases
+  * breakeven spread increases when EL/capital/liquidity cost increases
+* Provide a simple notebook or script that runs one base-case example end-to-end.
+
+Deliverables:
+
+1. Python package or module structure.
+2. Base-case config.
+3. End-to-end run script.
+4. Summary output table.
+5. Basic plots:
+
+   * average λ(t)
+   * average CCF(t)
+   * average EAD(t)
+   * EL distribution
+   * spread sensitivity to β / γ
+
+Main modeling priority:
+
+Get the PDF core right first:
+stochastic credit quality + stochastic drawdown + WWR + breakeven spread.
+
+Do not let the LP Excel option model distract Phase 1.
