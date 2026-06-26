@@ -1,0 +1,254 @@
+Please revise the current RCF Credit/WWR Python architecture based on the following review feedback.
+
+Overall direction:
+
+The current draft is strong and the Phase 1 / Phase 2 / Phase 3 ordering should stay:
+
+* Phase 1: PDF credit / WWR core
+* Phase 2: LP option / Excel-style liquidity plug-in
+* Phase 3: joint dynamics between credit, macro, and liquidity/LP
+
+However, please adjust the architecture so it becomes a reusable modeling framework rather than a one-off implementation hard-wired to the current PDF.
+
+Key architectural change:
+
+Do not let the pricing engine depend directly on specific model names such as CIR, OU, or Excel LP. Instead, introduce abstract interfaces / protocols for the key modeling concepts, with current implementations plugged in underneath.
+
+Recommended abstractions:
+
+1. StateProcess
+
+Purpose: simulate stochastic state variables.
+
+Interface idea:
+
+* simulate(config, time_grid, rng) -> paths
+* expose path shape conventions clearly
+
+Implementations:
+
+* CIRProcess for hazard/default intensity
+* OUProcess later for LP
+* DeterministicProcess or ScenarioProcess for supplied paths
+
+The Phase 1 model can still use CIR, but downstream code should refer to a generic credit_state or hazard_paths, not directly to CIR internals.
+
+2. DrawdownModel / CCFModel
+
+Purpose: compute facility utilisation / CCF from state variables.
+
+Interface idea:
+
+* compute(credit_state, macro_state, facility_config) -> ccf_paths
+
+Implementations:
+
+* HazardLinkedCCF using:
+  CCF(t) = CCF_base + beta * (lambda(t) - lambda_bar) + gamma * macro(t)
+* ConstantCCF for no-WWR baseline
+
+This will make WWR comparison cleaner.
+
+3. ExposureModel
+
+Purpose: compute EAD from CCF and facility terms.
+
+Interface idea:
+
+* compute(ccf_paths, facility_config) -> ead_paths
+
+Current implementation:
+
+* EAD(t) = drawn_amount + (committed_amount - drawn_amount) * CCF(t)
+
+4. LossModel
+
+Purpose: compute survival-adjusted expected loss given hazard, survival, EAD, LGD, and discount factors.
+
+Keep the rigorous formula:
+
+EL_path = sum_t lambda(t) * S(t) * LGD * EAD(t) * DF(t) * dt
+
+where:
+
+S(t) = exp(- integral_0^t lambda(s) ds)
+
+Important: separate the loss formula from the Monte Carlo aggregation. The model computes path-level losses; the engine aggregates across paths.
+
+5. DiscountCurve
+
+Purpose: provide discount factors.
+
+Interface idea:
+
+* discount_factors(time_grid) -> array
+
+Implementations:
+
+* FlatDiscountCurve for Phase 1
+* TermStructureDiscountCurve for OIS/SOFR zero curve input
+
+Keep the default as flat risk-free fallback, but make term-structure input natural.
+
+6. LiquidityCostProvider
+
+Purpose: provide liquidity cost / LP option cost as a PV scalar or possibly future time profile.
+
+Implementations:
+
+* ConstantLiquidityCost for Phase 1
+* ExcelLPOptionCostProvider for Phase 2
+* Future stochastic LP model later
+
+Important: Phase 1 should treat liquidity cost as external. Do not implement the LP OU/LSM model yet, but design the interface so it can plug in without changing the spread solver.
+
+7. SpreadSolver
+
+Purpose: solve breakeven facility spread.
+
+Use:
+
+s = (EL + capital_cost + liquidity_cost) / PV01_EAD
+
+where:
+
+PV01_EAD = E[sum_t EAD(t) * S(t) * DF(t) * dt]
+
+Both numerator and denominator are MC estimates from the same simulated paths where applicable.
+
+Keep it closed-form division for Phase 1, not iterative.
+
+8. PricingEngine / Orchestrator
+
+Purpose: coordinate the workflow only. It should not contain model formulas.
+
+Pipeline:
+
+* build time grid
+* simulate credit state process
+* build macro/scenario path
+* compute CCF
+* compute EAD
+* compute survival probabilities
+* compute path-level EL
+* aggregate EL
+* compute PV01_EAD
+* obtain capital cost and liquidity cost
+* solve breakeven spread
+* return structured result object
+
+Please keep the engine thin and dependency-injected.
+
+Suggested module structure:
+
+rcf_dev/
+src/
+config.py
+time_grid.py
+engine/
+pricing_engine.py
+monte_carlo.py
+processes/
+base.py
+cir.py
+ou.py
+deterministic.py
+scenarios/
+macro.py
+scenario.py
+models/
+drawdown.py
+exposure.py
+survival.py
+loss.py
+curves/
+discount.py
+costs/
+liquidity.py
+capital.py
+pricing/
+spread_solver.py
+diagnostics.py
+tests/
+test_cir.py
+test_drawdown.py
+test_survival.py
+test_loss.py
+test_spread_solver.py
+test_engine.py
+notebooks/
+rcf_base_case.ipynb
+cli.py
+
+Naming guidance:
+
+Avoid making the entire codebase look CIR-specific. CIR is just the Phase 1 implementation of the credit state process.
+
+Prefer:
+
+* CreditStateProcess
+* HazardRateProcess
+* DrawdownModel
+* ExposureModel
+* LiquidityCostProvider
+* DiscountCurve
+
+Over:
+
+* cir_everywhere
+* hard-coded hazard-to-CCF dependencies inside the engine
+
+Modeling constraints to preserve:
+
+* CIR process uses full-truncation Euler in Phase 1.
+* Hazard paths must remain non-negative.
+* Survival probability must be included in EL and PV01_EAD.
+* CCF must be clamped to [0, 1].
+* Discounting should use OIS/SOFR-style risk-free discounting conceptually, with flat-rate fallback.
+* Default number of paths: 10,000, configurable.
+* Monthly grid for 5Y default case.
+* Macro factor in Phase 1 should be deterministic scenario input; stochastic AR(1)/OU macro can be later.
+* LP option model is Phase 2, not Phase 1.
+
+Validation / tests:
+
+Please keep and expand the monotonicity tests:
+
+* CIR paths non-negative
+* CCF bounded [0,1]
+* higher beta increases WWR impact / EL, all else equal
+* beta = 0 matches fixed-CCF baseline
+* higher LGD increases EL
+* higher capital/liquidity cost increases breakeven spread
+* zero costs produce zero spread when EL is also zero
+* survival probability starts near 1 and decreases
+* PV01_EAD is positive unless inputs are degenerate
+* reproducibility with fixed random seed
+
+Also include diagnostics:
+
+* base spread
+* expected EL
+* average terminal lambda
+* average terminal survival probability
+* average terminal CCF/EAD
+* WWR impact versus beta = 0
+* beta/gamma/sigma sensitivity tables
+
+Important design principle:
+
+Keep Phase 1 useful and simple, but avoid blocking Phase 2 and Phase 3. The core architecture should support:
+
+Phase 2:
+
+* LP option module produces liquidity_cost_pv
+* plug into config.costs.liquidity_cost
+* no Phase 1 engine changes required
+
+Phase 3:
+
+* correlated Brownian shocks or shared macro stress factor
+* CIR credit process and OU LP process remain separate marginal processes
+* joint dynamics are introduced through a correlation matrix or shared scenario/factor layer
+
+Please update the architecture document and code accordingly before expanding the implementation further.
