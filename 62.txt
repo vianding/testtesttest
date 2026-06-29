@@ -1,0 +1,291 @@
+# Project Roadmap and Enterprise Evolution
+
+The project has now evolved beyond simply implementing the original PDF proposal.
+
+Going forward, please distinguish between **model evolution** and **production maturity**.
+
+The roadmap should therefore be organized into three versions rather than four implementation phases.
+
+---
+
+# V1 — Reference Implementation
+
+**Objective**
+
+Produce a clean, well-architected implementation that faithfully reproduces the economics of the original PDF proposal and the accompanying email / Excel prototype.
+
+V1 consists of:
+
+### Phase 1
+
+Credit / Wrong-Way Risk model
+
+* CIR hazard process
+* CCF model
+* EAD model
+* Survival-adjusted Expected Loss
+* Breakeven spread solver
+* Diagnostics
+
+### Phase 2
+
+Liquidity option model
+
+* OU spread dynamics
+* Longstaff-Schwartz pricing
+* LP option cost
+* CostModel integration
+* Diagnostics
+* Validation against the Excel prototype
+
+Deliverable:
+
+A reusable quantitative library capable of producing
+
+* Expected Loss
+* Liquidity Cost
+* Capital Cost
+* Breakeven Facility Spread
+
+along with supporting diagnostics.
+
+The objective of V1 is **faithful reproduction of the proposed economics**, not production deployment.
+
+---
+
+# V2 — Research Model
+
+After V1 is complete, the next objective is improving the mathematical model itself.
+
+Primary focus:
+
+## Joint dynamics
+
+Instead of treating the major components independently, introduce realistic dependence between
+
+* credit quality,
+* macro factors,
+* LP spreads,
+* utilisation / drawdown behaviour.
+
+Examples include:
+
+* correlated Brownian motions,
+* shared macro factors,
+* correlated state processes,
+* stochastic macro models,
+* richer drawdown models.
+
+Additional possible research improvements include
+
+* hazard curve calibration,
+* empirical CCF calibration,
+* richer LP dynamics,
+* state-dependent LGD,
+* portfolio extensions,
+* variance reduction,
+* convergence analysis.
+
+The emphasis of V2 is **better modelling**, not production infrastructure.
+
+---
+
+# V3 — Enterprise Productionization
+
+Once the mathematical model has matured, identify the remaining work required to transform the library into an enterprise-quality quantitative engine.
+
+Please create a document
+
+```text
+PRODUCTION_GAP_ANALYSIS.md
+```
+
+that evaluates the gap between the completed V2 model and a production implementation.
+
+The document should identify areas such as:
+
+## 1. Market data
+
+Current implementation
+
+vs
+
+Production implementation
+
+Examples:
+
+* hazard curve construction
+* zero curve infrastructure
+* market data adapters
+* calibration data
+* scenario data
+
+---
+
+## 2. Calibration framework
+
+Current implementation
+
+vs
+
+Production implementation
+
+Examples:
+
+* parameter estimation
+* calibration objectives
+* calibration diagnostics
+* calibration reporting
+* parameter versioning
+
+---
+
+## 3. Product modelling
+
+Identify assumptions that remain simplified.
+
+Examples:
+
+* deterministic LGD
+* linear CCF
+* simplified facility terms
+* simplified utilisation
+* simplified exercise assumptions
+
+---
+
+## 4. Portfolio capability
+
+Current implementation
+
+vs
+
+Production implementation
+
+Examples:
+
+* multiple facilities
+* borrower correlation
+* sector concentration
+* aggregation
+* netting
+* diversification
+
+---
+
+## 5. Numerical methods
+
+Identify opportunities for improvement.
+
+Examples:
+
+* variance reduction
+* quasi-random sampling
+* exact simulation
+* adaptive time grids
+* performance optimisation
+* parallel execution
+* GPU acceleration
+
+---
+
+## 6. Engineering
+
+Current implementation
+
+vs
+
+Production implementation
+
+Examples:
+
+* configuration management
+* logging
+* reproducibility
+* error handling
+* API stability
+* documentation
+* package distribution
+* CI/CD
+* benchmarking
+
+---
+
+## 7. Validation and Governance
+
+Examples:
+
+* model validation
+* benchmark suite
+* regression framework
+* explainability
+* sensitivity reporting
+* model documentation
+* audit trail
+* version control
+* governance requirements
+
+---
+
+## 8. Reporting
+
+Examples:
+
+* pricing reports
+* spread decomposition
+* EL decomposition
+* liquidity decomposition
+* WWR attribution
+* scenario reports
+* management summaries
+
+---
+
+## 9. Reusable Quant Infrastructure
+
+Please distinguish between
+
+### Generic reusable components
+
+Examples:
+
+* Monte Carlo engine
+* OU process
+* CIR process
+* Longstaff-Schwartz engine
+* curve framework
+* diagnostics framework
+* protocol interfaces
+* pricing engine
+
+and
+
+### RCF-specific business logic
+
+Examples:
+
+* CCF model
+* LP option payoff
+* facility spread solver
+* facility configuration
+* RCF diagnostics
+
+The objective is to identify reusable quantitative infrastructure that could support future products beyond this specific RCF model.
+
+---
+
+# Deliverable
+
+Please prepare the initial version of `PRODUCTION_GAP_ANALYSIS.md` after V1 is complete.
+
+This is **not** an implementation request.
+
+Instead, it should serve as a technical roadmap documenting:
+
+* what has been achieved,
+* remaining modelling assumptions,
+* remaining engineering gaps,
+* reusable infrastructure,
+* future development priorities.
+
+This document can then be refined after V2 is completed and ultimately become the roadmap for evolving the library into an enterprise-quality quantitative analytics platform.

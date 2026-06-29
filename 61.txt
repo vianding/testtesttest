@@ -1,0 +1,229 @@
+# V2 Design Decisions – Responses to Architecture Questions
+
+Thank you for the architectural review. Overall I agree with the proposed direction. Please proceed using the following design decisions.
+
+The goal of V2 is to introduce a coherent joint simulation framework while preserving the existing standalone Phase 1 and Phase 2 implementations.
+
+---
+
+# 1. Correlation Engine Architecture
+
+**Decision**
+
+Proceed with the recommended **JointSimulator** design.
+
+The JointSimulator should own:
+
+* master RNG
+* generation of independent Gaussian shocks
+* Cholesky correlation
+* dispatch of correlated innovations to each marginal process
+
+Each stochastic process (CIR, OU, future macro process) should support an optional externally supplied innovation sequence while preserving its existing standalone simulation mode.
+
+The orchestrator should remain thin.
+
+---
+
+# 2. Correlation Matrix Parameterization
+
+**Decision**
+
+Use three user-facing pairwise correlation parameters:
+
+* rho_credit_lp
+* rho_credit_macro
+* rho_lp_macro
+
+Construct the full 3×3 correlation matrix internally.
+
+Validate positive semi-definiteness before simulation.
+
+Avoid exposing the raw matrix unless a future extension requires it.
+
+---
+
+# 3. Macro Factor
+
+The recommendation is generally accepted with one refinement.
+
+The architecture should introduce the concept of a generic **MacroStateProcess**, not an OU-specific macro model.
+
+For V2:
+
+* deterministic macro remains supported
+* OU macro becomes the first stochastic implementation
+
+Future versions may introduce:
+
+* AR(1)
+* historical replay
+* scenario trees
+* factor models
+
+Accordingly, downstream modules should depend on the macro process abstraction rather than OU specifically.
+
+---
+
+# 4. RNG Coordination
+
+**Decision**
+
+Accepted.
+
+JointSimulator owns the master RNG.
+
+Standalone pricing continues to use the existing independent RNG path.
+
+This preserves backward compatibility while allowing correlated simulations.
+
+---
+
+# 5. LP Path Injection
+
+**Decision**
+
+Proceed with constructor injection.
+
+LPOptionCost should optionally receive externally generated LP spread paths.
+
+If external paths are supplied:
+
+* reuse them directly
+
+Otherwise:
+
+* generate OU paths internally exactly as in Phase 2.
+
+This preserves:
+
+* standalone LP pricing
+* joint-scenario LP pricing
+
+without changing the CostModel interface.
+
+---
+
+# 6. CCF Model
+
+**Decision**
+
+Keep the existing CCF formulation.
+
+Do **not** introduce LP spread directly into the CCF equation in V2.
+
+Joint dynamics should arise naturally through shared correlated innovations rather than explicit circular dependencies.
+
+The existing formula remains:
+
+CCF = base + β(λ − λ̄) + γ·macro
+
+where macro may now itself become stochastic.
+
+LP-dependent CCF may be revisited only if a future business requirement demonstrates incremental value.
+
+---
+
+# 7. Configuration Structure
+
+**Decision**
+
+Introduce a new JointConfig that composes existing configuration objects.
+
+For example:
+
+* RCFConfig
+* LPConfig
+* CorrelationConfig
+
+Avoid modifying the existing standalone configuration classes.
+
+This keeps V1 and Phase 2 APIs unchanged.
+
+---
+
+# 8. Result Objects
+
+**Decision**
+
+Introduce a new JointPricingResult.
+
+Do not overload PricingResult with numerous optional fields.
+
+The joint result should compose existing results rather than replace them.
+
+Conceptually:
+
+JointPricingResult
+
+* credit_result
+* lp_result
+* joint_diagnostics
+
+This keeps each module independently usable.
+
+If useful, also introduce a JointSimulationResult internally to hold:
+
+* hazard paths
+* LP paths
+* macro paths
+* innovation shocks
+* correlation matrix
+* time grid
+
+This object is primarily an internal implementation detail.
+
+---
+
+# 9. Backward Compatibility
+
+This is an important design principle.
+
+Existing APIs should continue to behave exactly as before.
+
+Phase 1 and Phase 2 standalone functionality should remain unchanged.
+
+Joint dynamics should be an opt-in capability.
+
+Whether this is implemented through:
+
+* run_joint_pricing(...)
+  or
+* an enhanced run_pricing(...)
+
+is an implementation detail.
+
+The important requirement is:
+
+* existing user workflows continue to work unchanged
+* joint simulation is clearly separated
+* standalone validation remains straightforward
+
+Choose the implementation that results in the cleanest code while preserving backwards compatibility.
+
+---
+
+# Additional Design Principle
+
+Correlation should always be applied at the **innovation (shock) level**, never by correlating simulated state variables after simulation.
+
+Each marginal process should preserve its own mathematical dynamics.
+
+Joint behaviour emerges from correlated innovations, not from modifying the marginal models themselves.
+
+---
+
+# Implementation Philosophy
+
+Please continue following the same principles established during Revision 1 and Phase 2:
+
+* incremental refactoring
+* preserve passing tests
+* preserve mathematical correctness
+* preserve standalone usability
+* keep abstractions lightweight
+* avoid introducing complexity without a clear modelling benefit
+
+The objective of V2 is not to redesign the existing models, but to provide a coherent framework in which they interact through a shared joint simulation engine.
+
+Once V2 is complete, we will proceed to the productionization planning (V3), where calibration, enterprise data integration, performance optimisation, and model governance will be addressed separately.
