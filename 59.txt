@@ -1,0 +1,97 @@
+# Phase 2 Design Decisions
+
+Please proceed with the Phase 2 design using the following decisions.
+
+## 1. `compute_cost()` units
+
+Use **PV in currency units** as the `CostModel.compute_cost()` return value.
+
+The LP model may compute an intermediate option value in bps, but the final `LPOptionCost.compute_cost()` should return currency PV.
+
+The Excel-style bps output should be treated as a diagnostic:
+
+```python
+option_price_bps = option_pv / pv01_or_scaling_factor * 10000
+```
+
+Please document clearly what scaling factor is used.
+
+## 2. Scaling from bps to currency PV
+
+For now, treat the LP option as priced on a **per-notional basis**, then scale to currency PV using the facility notional / committed amount and an appropriate PV factor.
+
+Please keep this scaling explicit in the config and diagnostics.
+
+Do not implicitly couple the LP model to the Phase 1 EAD profile yet. Any dependence on stochastic EAD / credit / macro should be deferred to Phase 3.
+
+## 3. Discounting
+
+Use an LP-specific discount rate inside `LPConfig`.
+
+The LP module should be self-contained and should not be forced to share Phase 1’s EL discount rate.
+
+Default can align with Phase 1 if convenient, but the Excel prototype’s 3% discounting should be supported directly for validation.
+
+## 4. Exercise interpretation
+
+Use the Excel interpretation as the Phase 2 reference:
+
+* bank is short optionality,
+* borrower benefits when market LP spread widens above locked-in LP spread,
+* payoff is economically similar to `max(S_t - locked_LP, 0)`,
+* monthly Bermudan exercise over the facility period.
+
+For Phase 2, model this as a **single-exercise Bermudan option**, consistent with the LSM backward induction in Excel.
+
+Please document that incremental draw / running optionality is a possible later refinement, but not Phase 2 unless the spreadsheet explicitly supports it.
+
+## 5. Shock modes
+
+Implement:
+
+* symmetric OU shocks as default,
+* positive-only shock mode as a simple config option.
+
+Defer asymmetric / skew-normal shocks until there is a clear calibration requirement.
+
+## 6. Base LP + option decomposition
+
+`LPOptionCost.compute_cost()` should return **total liquidity cost PV**.
+
+Internally and diagnostically, please decompose:
+
+```python
+total_liquidity_cost = base_lp_cost + lp_option_cost
+```
+
+But the pricing interface should remain simple: one `CostModel`, one PV number.
+
+## 7. Module placement
+
+Use the hybrid structure:
+
+* generic OU process in `src/models/ou_process.py`,
+* generic LSM logic in `src/pricing/lsm.py`,
+* LP-specific config, payoff, diagnostics, and `LPOptionCost` wrapper in `src/lp/`.
+
+This keeps generic numerical tools separate from LP-domain economics.
+
+## 8. Excel validation tolerance
+
+For Excel validation:
+
+* first compare using 1,000 paths, matching the Excel prototype scale,
+* compare distributional properties across seeds rather than requiring exact path matching,
+* use ±3 bps as an initial tolerance at 1,000 paths,
+* then demonstrate convergence / stabilization at 10,000+ paths.
+
+Please report both:
+
+* option value in bps,
+* converted PV liquidity cost.
+
+## 9. Implementation boundary
+
+Please produce the Phase 2 design document and skeleton first.
+
+Do not proceed to full OU + LSM implementation until the above assumptions are reflected clearly in the design.
