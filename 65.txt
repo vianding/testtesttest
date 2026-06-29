@@ -1,0 +1,67 @@
+## Response to G1 – Target Audience & Deployment Context
+
+The target for V3 is best viewed as a **pre-production quantitative research library**, positioned between a research prototype and an enterprise production system.
+
+It is therefore closest to **Option B**, with one important emphasis:
+
+> Prioritize improvements that increase **quantitative realism and reproducibility** over enterprise deployment infrastructure.
+
+The intended audience is:
+
+* quantitative researchers,
+* quantitative developers,
+* model validation teams,
+* corporate treasury modelling teams,
+
+rather than production support or operations teams.
+
+Accordingly, V3 should focus on making the library a robust, explainable, and reproducible modelling framework that is suitable for model review and future productionization.
+
+### Priorities for V3
+
+Examples include:
+
+* richer model realism,
+* calibration framework,
+* improved numerical methods,
+* deterministic reproducibility,
+* configuration serialization,
+* richer diagnostics,
+* validation reports,
+* result provenance,
+* explainable decomposition of pricing results,
+* benchmark comparisons,
+* parameter sensitivity analysis.
+
+These improvements directly strengthen the quantitative model while also making it easier to validate.
+
+### Enterprise Features
+
+Items such as:
+
+* market data adapters,
+* scheduling,
+* deployment,
+* monitoring,
+* entitlement,
+* operational alerting,
+* distributed execution,
+* production APIs,
+* enterprise authentication,
+
+should primarily be treated as **future roadmap items**.
+
+They should be assessed and documented within the production gap analysis, but should generally **not** be implemented during V3 unless they naturally support reproducibility or model validation.
+
+### Guiding Principle
+
+If there is a trade-off between:
+
+* improving quantitative realism and model quality, or
+* implementing production infrastructure,
+
+prefer the former.
+
+The objective of V3 is to produce a library that a quantitative researcher or model validation team would regard as technically strong and well engineered.
+
+Enterprise deployment should remain a separate and subsequent evolution once the quantitative model itself has matured.
