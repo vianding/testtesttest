@@ -1,0 +1,196 @@
+# Phase 2 Planning Request: LP Option Module
+
+Phase 1 and Revision 1 are now in good shape. The architecture has been refactored into a cleaner and more extensible framework while preserving the Phase 1 mathematics and tests.
+
+Please proceed with **Phase 2**, but begin with a focused **architecture and model design pass** before implementing the complete LP option model.
+
+---
+
+# Objective
+
+Design the LP option module so that it plugs naturally into the existing pricing framework through the `CostModel` interface.
+
+Ultimately, the Phase 2 module should produce a liquidity cost in PV terms:
+
+```python
+liquidity_cost_pv = lp_option_cost_model.compute_cost()
+```
+
+which is then consumed by the existing RCF pricing engine without requiring changes to the Phase 1 credit/WWR engine or spread solver.
+
+The design should be compatible with the **email/Excel prototype economics**:
+
+* 5Y LP spread modeled with OU dynamics,
+* monthly exercise / hold decisions over the facility option period,
+* output comparable to an LP option cost / liquidity cost expressed in PV terms.
+
+The objective is to reproduce the **economic intent** of the email/Excel prototype, **not** the spreadsheet mechanics.
+
+Please treat the email/Excel prototype as the **reference implementation of the intended economics**.
+
+Where the spreadsheet appears to contain implementation artifacts rather than genuine economic assumptions, preserve the economics while simplifying the implementation where appropriate. Please document any such simplifications.
+
+---
+
+# Scope for this step
+
+Please **do not** immediately implement the complete OU + Longstaff-Schwartz model.
+
+Instead, first produce a design proposal covering:
+
+1. Phase 2 module structure.
+2. LP option model inputs.
+3. OU stochastic process specification.
+4. Economic interpretation of the state variables.
+5. LP option payoff definition.
+6. Exercise policy and Longstaff-Schwartz workflow.
+7. Integration through the existing `CostModel` interface.
+8. Validation strategy.
+9. Diagnostics.
+10. Assumptions requiring confirmation before implementation.
+
+Where a minimal code skeleton helps clarify the architecture, feel free to include it.
+
+---
+
+# Design constraints
+
+Please preserve all existing Phase 1 behaviour.
+
+Phase 2 should be entirely additive.
+
+Specifically:
+
+* no changes to Phase 1 mathematical results,
+* no changes to existing Phase 1 tests except where required by interface compatibility,
+* LP option cost plugs into the pricing framework through the existing `CostModel` abstraction,
+* legacy scalar liquidity cost path remains supported for backward compatibility.
+
+---
+
+# Architecture expectations
+
+Please keep the LP option implementation as an independent module.
+
+It may have its own:
+
+* OU process,
+* simulation engine,
+* payoff model,
+* Longstaff-Schwartz implementation,
+* diagnostics,
+* tests.
+
+However, the pricing engine should continue to see only a clean `CostModel` implementation that produces a liquidity cost.
+
+No architectural changes to the Phase 1 pricing pipeline should be required.
+
+---
+
+# Model specification review
+
+One objective of this phase is to make the modelling assumptions explicit.
+
+For every major modelling decision, please classify it as one of the following:
+
+### 1. Explicitly specified
+
+Clearly stated in the email or Excel prototype.
+
+### 2. Reasonable inference
+
+Not explicitly stated, but inferred from the surrounding context or financial modelling practice.
+
+### 3. Open question
+
+Not specified sufficiently and should be confirmed before implementation.
+
+Please avoid silently making assumptions where uncertainty exists.
+
+If multiple interpretations appear plausible, briefly describe the alternatives and recommend one.
+
+---
+
+# Key modelling questions
+
+Please explicitly address the following.
+
+* What exactly is the OU process modelling?
+* What is the economic meaning of the state variable?
+* What is the LP option payoff?
+* Who owns the option?
+* Who exercises the option?
+* What is the exercise schedule?
+* Is the option European, Bermudan, or another exercise style?
+* What continuation value is estimated?
+* What regression basis is proposed for Longstaff-Schwartz?
+* What discounting convention should be used?
+* Does Phase 2 depend only on the LP process, or should any dependence on credit/macro remain deferred to Phase 3?
+* Which assumptions originate directly from the email/Excel prototype, and which are modelling proposals?
+
+---
+
+# Validation strategy
+
+Please propose validation from both a quantitative and implementation perspective.
+
+Examples include:
+
+* deterministic limiting cases,
+* zero-volatility behaviour,
+* exercise boundary sanity checks,
+* convergence with increasing simulation paths,
+* regression stability,
+* comparison against the Excel prototype,
+* comparison against analytical special cases where available.
+
+---
+
+# Diagnostics
+
+Please consider diagnostics similar in spirit to the existing Phase 1 diagnostics.
+
+For example:
+
+* exercise frequency,
+* average exercise time,
+* continuation value statistics,
+* LP spread distribution,
+* option value distribution,
+* convergence plots,
+* sensitivity to OU parameters,
+* sensitivity to volatility,
+* sensitivity to mean reversion,
+* sensitivity to exercise frequency.
+
+---
+
+# Deliverables
+
+Please provide:
+
+1. an updated Phase 2 architecture proposal,
+2. the proposed module organization,
+3. a review of the required modelling assumptions,
+4. a mapping between the email/Excel prototype and the proposed implementation,
+5. a minimal implementation skeleton where appropriate.
+
+Do **not** proceed directly to the complete OU + Longstaff-Schwartz implementation until the modelling assumptions have been made explicit and reviewed.
+
+---
+
+# Design philosophy
+
+The objective of this phase is **not** to invent a cleaner LP option model.
+
+The objective is to faithfully reproduce the economics of the existing email/Excel prototype while expressing those economics within the cleaner architecture established during Phase 1.
+
+The implementation should preserve the same philosophy as the rest of the library:
+
+* mathematically rigorous,
+* modular,
+* extensible,
+* incremental rather than disruptive,
+* simple enough for quantitative researchers to understand and extend.
+
+Phase 2 should naturally become another modelling module within the existing framework rather than introducing a separate pricing architecture.
