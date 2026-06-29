@@ -65,3 +65,178 @@ prefer the former.
 The objective of V3 is to produce a library that a quantitative researcher or model validation team would regard as technically strong and well engineered.
 
 Enterprise deployment should remain a separate and subsequent evolution once the quantitative model itself has matured.
+
+## Response to Remaining Gray Areas (G2–G6)
+
+### G2 – Calibration Scope
+
+#### G2a – Historical Data vs Framework
+
+Prefer **framework-first**.
+
+V3 should build a complete calibration framework capable of accepting historical or market data, but it should use synthetic or illustrative datasets unless suitable production-quality datasets are already available.
+
+The objective is to demonstrate a sound calibration workflow rather than create a production market-data pipeline.
+
+Design the interfaces so that real CDS spreads, LP spread histories, macro time series, or other market data can be plugged in later with minimal changes.
+
+---
+
+#### G2b – Calibration Method
+
+Support both calibration paradigms conceptually, but prioritize one.
+
+Priority:
+
+1. Cross-sectional market calibration (e.g. fitting CIR hazard parameters to an observed CDS or hazard term structure)
+2. Historical estimation (MLE, moment matching, etc.)
+
+Rationale:
+
+The pricing library ultimately prices today's facility using today's market information. Cross-sectional calibration therefore aligns most naturally with the intended use of the framework.
+
+Historical estimation should be supported through the same calibration architecture but can initially be demonstrated with synthetic data.
+
+---
+
+### G3 – Portfolio vs Single Name
+
+V3 should remain a **single-name framework**.
+
+The objective is to deepen model quality rather than broaden scope.
+
+Portfolio simulation introduces a fundamentally different layer:
+
+* borrower heterogeneity
+* portfolio dependence
+* common factors
+* concentration risk
+* aggregation
+* capital allocation
+
+Those belong naturally in a future V4.
+
+A well-designed single-name architecture should make later portfolio expansion straightforward.
+
+---
+
+### G4 – Performance Targets
+
+Current performance is sufficient for the intended research-library use case.
+
+Do not optimize prematurely.
+
+Instead:
+
+* profile the current implementation;
+* identify computational bottlenecks;
+* document where acceleration would help.
+
+Only implement performance improvements that are low-risk and architecture-preserving.
+
+Examples:
+
+* improved vectorization;
+* avoiding unnecessary allocations;
+* optional NumPy optimizations.
+
+Do **not** introduce Numba, GPU implementations, multiprocessing, or other advanced optimization frameworks unless profiling demonstrates that they are necessary.
+
+Performance engineering can become a dedicated future phase after the quantitative model has stabilized.
+
+---
+
+### G5 – Stochastic Interest Rates
+
+For V3, deterministic term-structure-aware discounting is sufficient.
+
+Priority:
+
+* support deterministic OIS / SOFR zero curves;
+* support arbitrary deterministic discount curves;
+* preserve existing flat-rate capability.
+
+Do **not** introduce stochastic short-rate models (Hull–White, Vasicek, CIR rates, etc.) during V3.
+
+Reasoning:
+
+The dominant uncertainty in the current framework remains
+
+* credit quality,
+* utilisation,
+* liquidity premium,
+* macro dynamics.
+
+Adding stochastic rates substantially increases dimensionality while contributing comparatively little to the current modelling objective.
+
+Treat stochastic interest rates as a natural future V4 enhancement.
+
+---
+
+### G6 – V3 Stage Granularity
+
+Five stages is an appropriate level of granularity.
+
+It provides enough separation for clear implementation and review without fragmenting the work excessively.
+
+A suggested structure is:
+
+**V3.1 — Calibration Framework**
+
+* calibration architecture
+* parameter estimation
+* synthetic examples
+
+---
+
+**V3.2 — Quantitative Realism**
+
+* deterministic curve support
+* richer recovery assumptions
+* improved numerical modelling
+
+---
+
+**V3.3 — Validation & Diagnostics**
+
+* benchmark reports
+* sensitivity analysis
+* convergence studies
+* calibration diagnostics
+
+---
+
+**V3.4 — Engineering Hardening**
+
+* configuration serialization
+* reproducibility
+* reporting
+* improved APIs
+* documentation
+
+---
+
+**V3.5 — Production Gap Assessment**
+
+* summarize remaining gaps;
+* identify what belongs in V4;
+* document enterprise roadmap.
+
+The intent is that each stage produces a coherent, reviewable improvement while preserving the project's incremental development philosophy.
+
+---
+
+## Overall Guiding Principle
+
+When making implementation decisions throughout V3, prefer improvements that increase:
+
+* quantitative realism;
+* calibration capability;
+* numerical robustness;
+* explainability;
+* reproducibility;
+* validation quality.
+
+Avoid adding complexity solely for completeness or academic sophistication.
+
+The goal is to produce a library that a quantitative researcher, model validator, or quantitative developer would regard as technically strong, well organized, and ready for future productionization—not to build a complete production platform within V3.
