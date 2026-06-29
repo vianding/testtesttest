@@ -1,0 +1,221 @@
+# Architecture Revision Request
+
+The current implementation and architecture are a solid Phase 1 foundation. The mathematical model is clear, the implementation is modular, and the testing strategy is already in good shape.
+
+Before expanding the implementation further, I'd like to perform one architecture refinement pass.
+
+The objective is **not** to redesign the mathematics. Phase 1 should continue to implement exactly the same pricing model. Instead, I'd like to evolve the architecture into a reusable quantitative modeling framework that can naturally support the later phases without major refactoring.
+
+## Overall roadmap
+
+The long-term roadmap remains unchanged.
+
+* **Phase 1:** Credit / WWR core pricing
+* **Phase 2:** Liquidity (LP option) module that plugs into the pricing framework
+* **Phase 3:** Joint dynamics between credit, macro factors and liquidity
+
+The revised architecture should preserve this roadmap.
+
+---
+
+# Primary design principle
+
+Currently the code is naturally organized around the Phase 1 mathematical components:
+
+> CIR → CCF → EAD → EL → Spread
+
+I'd like the architecture to gradually evolve toward organizing around **financial modeling responsibilities**, while keeping the current mathematical implementation underneath.
+
+For example, concepts such as
+
+* stochastic state process
+* exposure / drawdown model
+* loss model
+* discounting
+* liquidity cost
+* pricing
+
+should become first-class architectural concepts, with the current Phase 1 formulas acting as one implementation of those concepts.
+
+The objective is that future models (OU processes, LP option models, alternative hazard processes, different drawdown models, etc.) can be introduced without changing downstream modules.
+
+---
+
+# Desired architectural characteristics
+
+## 1. Thin orchestration layer
+
+The pricing engine should primarily coordinate the workflow.
+
+Ideally it should assemble the pipeline, pass data between modules, and collect results, rather than containing financial formulas.
+
+---
+
+## 2. Clear separation of responsibilities
+
+Try to separate responsibilities such as
+
+* stochastic process generation
+* scenario generation
+* exposure modelling
+* loss calculation
+* discounting
+* pricing
+
+rather than coupling them inside a single workflow.
+
+The mathematical formulas themselves should remain inside their respective modelling components.
+
+---
+
+## 3. Replace implementation-specific coupling with modeling abstractions
+
+The current implementation uses a CIR hazard process.
+
+That is appropriate for Phase 1.
+
+However, downstream code should ideally depend on a generic hazard or credit-state abstraction rather than on the CIR implementation itself.
+
+Likewise, future LP models, alternative stochastic processes, or different drawdown models should be able to replace the current implementation with minimal impact elsewhere.
+
+Please introduce abstractions only where they represent genuine financial modelling responsibilities or realistic future extensions.
+
+Avoid introducing unnecessary software patterns simply for abstraction's sake.
+
+---
+
+## 4. Preserve data-flow architecture
+
+One aspect of the current design that works very well is the top-down pipeline.
+
+Please preserve this style.
+
+The implementation should continue to resemble a sequence of transformations:
+
+State paths
+
+↓
+
+CCF
+
+↓
+
+EAD
+
+↓
+
+Survival
+
+↓
+
+Expected Loss
+
+↓
+
+Pricing
+
+with minimal coupling and no circular dependencies.
+
+Prefer data flowing through the system as immutable model outputs rather than modules reaching back into upstream components.
+
+---
+
+## 5. Preserve mathematical correctness
+
+The following modelling assumptions should remain unchanged.
+
+* CIR with full-truncation Euler in Phase 1.
+* Hazard paths remain non-negative.
+* Survival probabilities are included in both EL and PV01 calculations.
+* CCF remains bounded to [0,1].
+* Flat risk-free discounting remains the default, while allowing future term-structure support.
+* Deterministic macro scenarios remain the Phase 1 implementation.
+* LP option pricing remains outside Phase 1 and supplies only liquidity cost.
+
+No change to the Phase 1 mathematical model is intended.
+
+---
+
+## 6. Package organization
+
+Please review whether the current package structure best reflects the modelling responsibilities.
+
+Feel free to reorganize packages if doing so better separates
+
+* processes
+* models
+* pricing
+* curves
+* costs
+* diagnostics
+* orchestration
+
+The exact directory layout is left to your judgement.
+
+---
+
+## 7. Results and diagnostics
+
+Consider whether returning richer result objects would improve the architecture compared with returning only scalar outputs.
+
+Diagnostics should continue to be first-class citizens of the framework.
+
+The current sensitivity analysis and validation suite should remain and expand naturally with future models.
+
+---
+
+## 8. Future extensibility
+
+Please evaluate whether the architecture naturally supports the following without major refactoring.
+
+### Phase 2
+
+* LP option module computes `liquidity_cost`.
+* Pricing engine consumes that result without architectural changes.
+
+### Phase 3
+
+* Correlated stochastic processes.
+* Shared macro factors.
+* Multiple state processes.
+* Additional stochastic models.
+
+---
+
+# Refactoring approach
+
+Please prefer **incremental refactoring** over a full rewrite.
+
+The current implementation is already functional and provides a solid Phase 1 foundation. The goal of this revision is to improve the architecture while preserving the existing mathematical behaviour and implementation quality.
+
+Unless there is a clear architectural benefit, please preserve:
+
+* existing functionality,
+* existing mathematical behaviour,
+* existing validation logic,
+* existing passing tests.
+
+If an interface or module structure needs to change, please make the change intentionally, update the affected tests accordingly, and briefly document the architectural motivation.
+
+When multiple reasonable architectural options exist, prefer the one that minimizes disruption to existing modules while improving long-term extensibility.
+
+The objective is to evolve the framework rather than replace it.
+
+---
+
+# Deliverables
+
+Please update:
+
+1. the architecture document,
+2. the module organization (if appropriate),
+3. the implementation (only where required by the revised architecture),
+4. the tests if interfaces change.
+
+Where you decide **not** to adopt one of the architectural ideas above, please briefly explain why and propose an alternative if you believe it leads to a cleaner long-term design.
+
+If you identify architectural improvements beyond those suggested here that better satisfy the long-term design goals while keeping the implementation simple, feel free to incorporate them and explain your reasoning.
+
+The objective is **not** to maximize abstraction. The objective is to produce a clean, extensible quantitative modelling framework that remains simple enough for quantitative researchers to understand, extend, and maintain.
+
+The revised architecture should continue to serve as the implementation foundation for the existing Phase 1 model while naturally accommodating the planned Phase 2 and Phase 3 extensions.
