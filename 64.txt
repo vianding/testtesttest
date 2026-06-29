@@ -1,0 +1,289 @@
+# V3 Planning & Design Request
+
+## Current Project Status
+
+The project has now completed three major milestones.
+
+### V1 — Credit Pricing Framework
+
+Implemented:
+
+* CIR hazard process
+* deterministic macro scenario
+* CCF model
+* EAD
+* survival-adjusted expected loss
+* spread solver
+* modular pricing architecture
+* diagnostics
+* regression suite
+
+---
+
+### Phase 2 — Liquidity Premium Option
+
+Implemented:
+
+* OU LP spread dynamics
+* Longstaff-Schwartz Monte Carlo
+* standalone LP pricing
+* CostModel integration
+* Excel-compatible validation mode
+* diagnostics
+
+---
+
+### V2 — Joint Dynamics
+
+Implemented:
+
+* correlated innovations via Cholesky
+* stochastic macro process
+* joint simulation engine
+* standalone LP mode
+* joint LP mode
+* backward compatibility
+* joint diagnostics
+* complete regression testing
+
+The framework is now functioning as an integrated quantitative research library.
+
+---
+
+# Objective
+
+Before writing another line of code, I would like you to step back and evaluate the project as the lead quantitative architect.
+
+Your job is **not** to immediately implement more features.
+
+Instead, determine what the next stage of the library should be.
+
+Assume the goal is to evolve this into a realistic institutional quantitative pricing framework while preserving:
+
+* modularity
+* financial interpretability
+* extensibility
+* backward compatibility
+* research friendliness
+
+---
+
+# Deliverable
+
+Produce a document named
+
+```
+V3_ROADMAP.md
+```
+
+This document should become the blueprint for the next stage of development.
+
+---
+
+# Requested Contents
+
+## Part 1 — Current State Assessment
+
+Briefly summarize
+
+* what the library already does well
+* what has been achieved
+* what the current architecture supports
+
+Do not repeat implementation details unnecessarily.
+
+---
+
+## Part 2 — Production Gap Analysis
+
+Identify remaining gaps between the current implementation and a production-quality pricing library.
+
+Separate them into categories such as
+
+* quantitative modelling
+* numerical methods
+* calibration
+* market realism
+* software architecture
+* validation
+* operational robustness
+* enterprise deployment
+
+For every gap explain
+
+* why it exists
+* whether it was an intentional simplification
+* how important it is
+* whether it belongs in the next development phase
+
+---
+
+## Part 3 — Proposed V3 Roadmap
+
+Rather than treating V3 as one large implementation, divide it into logical stages.
+
+For example
+
+V3.1
+
+Model realism
+
+V3.2
+
+Calibration
+
+V3.3
+
+Numerical improvements
+
+V3.4
+
+Engineering hardening
+
+V3.5
+
+Enterprise integration
+
+You are free to recommend a different decomposition if you believe it is superior.
+
+For every stage describe
+
+* objectives
+* expected implementation effort
+* dependencies
+* expected modelling improvement
+* expected business value
+
+---
+
+## Part 4 — Model Enhancements
+
+Discuss possible quantitative improvements, including (but not limited to)
+
+* calibrated CIR parameters
+* calibrated OU parameters
+* stochastic recovery
+* richer CCF specification
+* multi-factor macro models
+* stochastic interest rates
+* stochastic discounting
+* richer dependence structures
+* portfolio simulation
+* borrower heterogeneity
+* variance reduction
+* quasi-Monte Carlo
+* calibration workflow
+* historical estimation
+
+For each item classify
+
+Essential
+
+Recommended
+
+Optional
+
+Future research
+
+Please avoid recommending complexity unless it produces meaningful modelling benefit.
+
+---
+
+## Part 5 — Engineering Enhancements
+
+Assess remaining software improvements.
+
+Examples include
+
+* API refinement
+* package structure
+* configuration management
+* diagnostics
+* reporting
+* serialization
+* reproducibility
+* logging
+* profiling
+* documentation
+* testing
+* benchmarking
+
+Again classify each recommendation by priority.
+
+---
+
+## Part 6 — Enterprise Readiness
+
+If this library were eventually deployed inside a quantitative research or front-office environment,
+
+what additional work would still be required?
+
+Consider topics such as
+
+* market data interfaces
+* calibration pipelines
+* audit trails
+* monitoring
+* governance
+* model validation
+* deployment
+* performance
+* versioning
+* documentation
+
+---
+
+## Part 7 — What Should NOT Change
+
+Please explicitly identify architectural decisions that should remain unchanged.
+
+Examples may include
+
+* protocol-based architecture
+* separation of marginal models
+* CostModel abstraction
+* joint simulator
+* standalone vs joint modes
+* innovation-level correlation
+* modular pricing pipeline
+
+Protect successful design decisions from unnecessary redesign.
+
+---
+
+## Part 8 — Recommended Implementation Order
+
+Produce the implementation order you would recommend.
+
+For each proposed phase estimate
+
+* modelling impact
+* engineering effort
+* implementation risk
+* expected payoff
+
+---
+
+# Guiding Principles
+
+Please optimize for
+
+* simplicity
+* composability
+* financial realism
+* maintainability
+* future extensibility
+
+Avoid introducing additional abstraction unless it clearly improves the architecture.
+
+Avoid implementing features solely because they are academically interesting.
+
+Focus on what would make this library genuinely stronger.
+
+---
+
+# Final Deliverable
+
+The output of this task should be a roadmap rather than code.
+
+Only after this roadmap is complete will implementation of the proposed V3.x stages begin.
