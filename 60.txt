@@ -1,0 +1,314 @@
+# Project Roadmap and V2 / Phase 3 Planning Request
+
+The project has now reached an important milestone.
+
+Phase 1 and Phase 2 have produced a clean, modular implementation of the proposed PDF model and accompanying Excel prototype.
+
+Going forward, please distinguish between **model evolution** and **production maturity**.
+
+The project roadmap is therefore organized into three versions.
+
+---
+
+# V1 — Reference Implementation (Completed)
+
+## Objective
+
+Implement the proposed PDF model and Excel prototype faithfully within a reusable quantitative library.
+
+V1 consists of:
+
+### Phase 1
+
+Credit / Wrong-Way Risk engine
+
+* CIR hazard process
+* deterministic macro scenario
+* hazard-linked CCF
+* EAD model
+* survival-adjusted Expected Loss
+* breakeven spread solver
+* diagnostics
+
+### Phase 2
+
+Liquidity option module
+
+* OU LP spread process
+* Longstaff-Schwartz pricing
+* LP option CostModel
+* standalone LP diagnostics
+* Excel compatibility mode
+* integration into Phase 1 spread solver
+
+V1 now provides a reusable library capable of producing:
+
+* Expected Loss
+* Liquidity Cost
+* Capital Cost
+* Breakeven Facility Spread
+
+along with diagnostics and validation.
+
+The objective of V1 is faithful implementation of the proposed economics rather than enterprise production deployment.
+
+---
+
+# V2 — Research Model (Current Focus)
+
+The objective of V2 is **not** to rewrite the existing implementation.
+
+Instead, V2 should improve the mathematical model by introducing coherent **joint dynamics** between the currently independent components.
+
+The emphasis of V2 is better modelling rather than production engineering.
+
+---
+
+# V3 — Enterprise Productionization (Future)
+
+After V2 is complete, a separate roadmap will identify the remaining work required for an enterprise-quality quantitative library, including:
+
+* calibration framework,
+* market data integration,
+* portfolio capability,
+* governance,
+* validation,
+* reporting,
+* reusable quantitative infrastructure.
+
+These topics intentionally remain outside the scope of V2.
+
+---
+
+# V2 / Phase 3 Objective
+
+Design the joint dynamics layer that links
+
+* borrower credit quality,
+* macro factors,
+* facility utilisation / drawdown,
+* LP spread dynamics,
+
+within a coherent Monte Carlo framework.
+
+The goal is to move from separate marginal models to a consistent joint simulation while preserving the existing V1 implementation as the baseline.
+
+V2 should answer the following question:
+
+> How do credit deterioration, macro stress, facility utilisation, and LP spread widening move together, and how does that affect expected loss, liquidity cost, and breakeven spread?
+
+---
+
+# Current V1 Baseline
+
+Please treat the existing implementation as the V1 reference.
+
+The current marginal models are:
+
+### Credit
+
+* CIR hazard process
+
+### Macro
+
+* deterministic scenario
+
+### Drawdown
+
+* hazard / macro linked CCF
+
+### Liquidity
+
+* OU LP spread process
+* Longstaff-Schwartz LP option pricing
+
+These components currently operate largely independently.
+
+The purpose of V2 is to introduce joint dependence while preserving each marginal model.
+
+---
+
+# Design Topics
+
+Please prepare a design proposal covering the following.
+
+## 1. Joint simulation engine
+
+Should a central joint simulation layer be introduced?
+
+If so, what should it produce?
+
+Possible outputs include:
+
+* correlated random innovations,
+* hazard paths,
+* macro paths,
+* LP spread paths,
+* shared time grid,
+* diagnostic metadata.
+
+Please recommend an architecture that minimizes disruption to the existing modules.
+
+---
+
+## 2. Correlation structure
+
+Please propose an initial correlation structure among:
+
+* credit shocks,
+* LP spread shocks,
+* macro shocks.
+
+The correlation parameters should be configurable.
+
+Please recommend sensible default values for demonstration purposes.
+
+---
+
+## 3. Correlation methodology
+
+Correlation should be applied at the **shock / innovation level**, **not** by directly correlating simulated state levels after simulation.
+
+The marginal CIR and OU dynamics should remain intact.
+
+The joint model should coordinate the underlying random drivers or shared latent factors while preserving each marginal process.
+
+Please avoid post-processing hazard or LP spread paths to impose correlation.
+
+---
+
+## 4. Macro factor evolution
+
+Phase 1 uses deterministic macro scenarios.
+
+Please evaluate whether V2 should introduce:
+
+* stochastic macro process,
+* shared latent stress factor,
+* AR(1),
+* OU,
+* hybrid deterministic + stochastic approaches.
+
+Recommend the simplest implementation that produces meaningful joint dynamics.
+
+---
+
+## 5. Drawdown model
+
+Evaluate whether the current CCF formulation
+
+```text
+CCF = base + beta × (hazard − λ̄) + gamma × macro
+```
+
+remains sufficient for V2 or whether a richer utilisation state should be introduced.
+
+Please favour the simplest extension that demonstrates joint dynamics.
+
+---
+
+## 6. LP cost integration
+
+Please support **two operating modes**.
+
+### Standalone LP mode
+
+This preserves the existing Phase 2 implementation.
+
+The LP module generates its own OU paths, prices the option independently, and returns liquidity cost through the existing `CostModel` interface.
+
+This mode should remain available for:
+
+* Excel validation,
+* isolated LP analysis,
+* regression testing.
+
+### Joint-scenario LP mode
+
+The joint simulation layer generates correlated LP spread paths.
+
+The LP pricer consumes these externally generated LP paths while preserving the same payoff, exercise, and Longstaff-Schwartz logic.
+
+The objective is to introduce joint dependence without coupling the LP implementation tightly to the credit engine.
+
+---
+
+## 7. Backward compatibility
+
+The existing V1 implementation must remain fully supported.
+
+When
+
+* correlations are zero,
+* macro remains deterministic,
+
+the V2 framework should reproduce V1 behaviour.
+
+---
+
+## 8. Validation
+
+Please propose validation covering:
+
+* correlation matrix validity,
+* empirical shock correlations,
+* zero-correlation regression tests,
+* fixed-seed reproducibility,
+* joint stress behaviour,
+* LP cost sensitivity,
+* spread sensitivity,
+* WWR impact,
+* path consistency.
+
+---
+
+## 9. Diagnostics
+
+Please propose diagnostics such as:
+
+* empirical correlation matrices,
+* scatter plots of joint states,
+* conditional LP spread under credit stress,
+* conditional EAD under macro stress,
+* spread decomposition,
+* liquidity cost decomposition,
+* joint scenario comparison.
+
+---
+
+# Implementation Guidance
+
+Please do **not** perform a large rewrite.
+
+Prefer incremental refactoring.
+
+The existing Phase 1 and Phase 2 modules should remain usable independently.
+
+Introduce new interfaces only where they represent genuine modelling responsibilities.
+
+The objective is to introduce a joint simulation layer that coordinates existing modules rather than replacing them.
+
+Please preserve:
+
+* standalone credit pricing,
+* standalone LP pricing,
+* joint pricing.
+
+The implementation should remain understandable for quantitative researchers and maintain the modular architecture established during V1.
+
+---
+
+# Deliverables
+
+Please provide:
+
+1. V2 architecture proposal.
+2. Joint simulation design.
+3. Proposed module layout.
+4. Configuration additions.
+5. Integration plan with the existing implementation.
+6. Validation strategy.
+7. Diagnostics plan.
+8. Open modelling questions requiring discussion.
+
+Please begin with the design proposal before proceeding to implementation.
