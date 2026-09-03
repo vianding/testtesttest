@@ -596,3 +596,24 @@ Keep the following concepts separate:
 5. **Cost of funds** applies to the genuine unsecuritized shortfall.
 6. **ColVA/FVA** measures each actual funding channel relative to the rate already embedded in base valuation.
 7. **Genuine excess collateral** and **repo monetization uplift** are different quantities and should not be conflated.
+
+
+## 11. Key References
+
+1. **OSFI — Margin Requirements for Non-Centrally Cleared Derivatives (Guideline E-22)**  
+   Regulatory framework for bilateral margin, including eligible collateral and the treatment of initial and variation margin.  
+   https://www.osfi-bsif.gc.ca/en/guidance/guidance-library/margin-requirements-non-centrally-cleared-derivatives-guideline-2024
+
+2. **OSFI — Capital Adequacy Requirements (CAR) 2026, Chapter 4: Credit Risk — Standardized Approach**  
+   Source for the supervisory collateral haircut framework, including the sovereign-debt maturity buckets discussed in this note.  
+   https://www.osfi-bsif.gc.ca/en/guidance/guidance-library/capital-adequacy-requirements-car-2026-chapter-4-credit-risk-standardized-approach
+
+3. **ICMA — What is a haircut? (Repo FAQ)**  
+   Reference for repo haircut mechanics and the relationship between collateral market value and repo cash proceeds.  
+   https://www.icmagroup.org/market-practice-and-regulatory-policy/repo-and-collateral-markets/icma-ercc-publications/frequently-asked-questions-on-repo/21-what-is-a-haircut/
+
+4. **ISDA — 2016 Credit Support Annex for Variation Margin (English Law)**  
+   Reference for the contractual variation-margin CSA framework and collateral terms.  
+   https://www.isda.org/book/2016-credit-support-annex-for-variation-margin-english-pdf/
+
+> **Note:** The ColVA/FVA decomposition and formulas in this document are first-principles modeling derivations using these contractual, regulatory, and repo-market building blocks; they are not formulas prescribed directly by the references above.
