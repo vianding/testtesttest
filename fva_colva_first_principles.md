@@ -1,354 +1,598 @@
-# First-Principles FVA / ColVA Framework for Non-Cash VM
+# First-Principles FVA / ColVA for Non-Cash VM
 
 ## 1. Setup
 
-Consider a derivative with positive bank exposure (V_t\>0), where the
-counterparty posts a bond as variation margin (VM).
+Consider a derivative with positive bank exposure \(V_t>0\), collateralized by a bond posted as variation margin (VM).
 
 Define:
 
--   (V_t): derivative exposure / cash-equivalent collateral requirement.
--   (h\_{`\mathrm{CSA}`{=tex}}): contractual CSA haircut;
-    (q\_{`\mathrm{CSA}`{=tex}}=1-h\_{`\mathrm{CSA}`{=tex}}).
--   (h\_{`\mathrm{reg}`{=tex}}): applicable regulatory minimum haircut;
-    (q\_{`\mathrm{reg}`{=tex}}=1-h\_{`\mathrm{reg}`{=tex}}).
--   (h\_{`\mathrm{repo}`{=tex}}): repo-market haircut;
-    (q\_{`\mathrm{repo}`{=tex}}=1-h\_{`\mathrm{repo}`{=tex}}).
--   (B_t): actual market value of bond received, after any collateral
-    cap.
--   (r\_{`\mathrm{repo}`{=tex},t}): repo funding rate for the bond.
--   (r\_{`\mathrm{CoF}`{=tex},t}): marginal unsecured / unsecuritized
-    funding rate.
--   (r\_{`\mathrm{base}`{=tex},t}): cash/CSA discounting or funding rate
-    already embedded in base valuation.
--   (DF_t): base-valuation discount factor.
+- \(V_t\): derivative exposure / cash-equivalent collateral requirement.
+- \(h_{\mathrm{CSA}}\): contractual CSA haircut; \(q_{\mathrm{CSA}}=1-h_{\mathrm{CSA}}\).
+- \(h_{\mathrm{reg}}\): regulatory haircut; \(q_{\mathrm{reg}}=1-h_{\mathrm{reg}}\).
+- \(h_{\mathrm{repo}}\): repo-market haircut; \(q_{\mathrm{repo}}=1-h_{\mathrm{repo}}\).
+- \(B_t\): actual market value of bond received, after any contractual collateral cap.
+- \(r_{\mathrm{repo},t}\): repo funding rate.
+- \(r_{\mathrm{CoF},t}\): marginal unsecured / unsecuritized funding rate.
+- \(r_{\mathrm{base},t}\): cash/CSA discounting or funding rate already embedded in base valuation.
+- \(DF_t=P(0,t)\): discount factor from \(t\) to today.
 
-Assume VM is legally rehypothecatable, regulatory rules permit reuse,
-and Treasury can operationally monetize the bond.
+Assume the VM is legally rehypothecatable, regulation permits reuse, and Treasury can operationally monetize the bond.
 
-------------------------------------------------------------------------
+---
 
 ## 2. How Much Bond Is Posted?
 
 Absent a cap, the CSA requires
 
-\[ B_t\^{`\mathrm{CSA}`{=tex}}=`\frac{V_t}{q_{\mathrm{CSA}}}`{=tex}. \]
+\[
+B_t^{\mathrm{CSA}}=\frac{V_t}{q_{\mathrm{CSA}}}.
+\]
 
-For a 10% CSA haircut:
+For a 10% CSA haircut,
 
-\[ B_t\^{`\mathrm{CSA}`{=tex}}=`\frac{V_t}{0.90}`{=tex}. \]
+\[
+B_t^{\mathrm{CSA}}=\frac{V_t}{0.90}.
+\]
 
-If a contractual cap limits delivery, (B_t) is the **actual** bond
-market value received and can be below this amount.
+If a contractual cap limits delivery, \(B_t\) is the **actual** bond market value received and may be below the full CSA amount.
 
-The CSA haircut determines how much collateral the client is
-contractually required to post. It does not determine the bond's funding
-value.
+The CSA haircut determines how much bond the client is contractually required to post. It does **not** determine the bond's regulatory recognition or repo funding value.
 
-------------------------------------------------------------------------
+---
 
-## 3. Regulatory Coverage Determines the Funding Shortfall
+## 3. Regulatory Coverage Determines the True Funding Shortfall
 
-Regulatory recognition of the received bond is
+Regulatory recognition is
 
-\[ C\_{`\mathrm{reg}`{=tex},t}=q\_{`\mathrm{reg}`{=tex}}B_t. \]
+\[
+C_{\mathrm{reg},t}=q_{\mathrm{reg}}B_t.
+\]
 
-For a 4% regulatory haircut:
+For a 4% regulatory haircut,
 
-\[ C\_{`\mathrm{reg}`{=tex},t}=0.96B_t. \]
+\[
+C_{\mathrm{reg},t}=0.96B_t.
+\]
 
-The regulatory break-even bond amount is therefore
+The regulatory break-even amount is
 
-\[ `\boxed{
+\[
+\boxed{
 B_t^*=\frac{V_t}{q_{\mathrm{reg}}}
-}`{=tex} \]
+}
+\]
 
-and the amount requiring unsecuritized funding is
+and the true amount requiring unsecuritized funding is
 
-\[ `\boxed{
+\[
+\boxed{
 U_t=(V_t-q_{\mathrm{reg}}B_t)^+.
-}`{=tex} \]
+}
+\]
 
-Thus:
+Hence:
 
--   if (q\_{`\mathrm{reg}`{=tex}}B_t`\ge `{=tex}V_t), no unsecuritized
-    funding shortfall exists;
--   if (q\_{`\mathrm{reg}`{=tex}}B_t\<V_t), the deficit (U_t) is funded
-    at (r\_{`\mathrm{CoF}`{=tex},t}).
+- if \(q_{\mathrm{reg}}B_t\ge V_t\), there is no true unsecuritized funding shortfall;
+- if \(q_{\mathrm{reg}}B_t<V_t\), the shortfall \(U_t\) is funded at \(r_{\mathrm{CoF},t}\).
 
-**Important:** the repo haircut is not a second threshold for
-determining (U_t). It affects the funding economics of the bond that has
-been received, not whether the regulatory collateral requirement has
-been met.
+**Repo haircut does not determine whether \(U_t\) exists.**
 
-------------------------------------------------------------------------
+---
 
-## 4. CSA Buffer and Collateral Cap
+## 4. Repo Monetization and Bond Funding Value
+
+The received bond can be monetized in repo. Its repo funding capacity is
+
+\[
+\boxed{
+F_t^{\mathrm{repo}}=q_{\mathrm{repo}}B_t.
+}
+\]
+
+For a 2% repo haircut,
+
+\[
+F_t^{\mathrm{repo}}=0.98B_t.
+\]
+
+This is the amount of cash Treasury can raise against the bond.
+
+The repo haircut and regulatory haircut are independent quantities. There is no universal ordering:
+
+\[
+h_{\mathrm{repo}}\lessgtr h_{\mathrm{reg}}.
+\]
+
+For liquid sovereign collateral, \(h_{\mathrm{repo}}<h_{\mathrm{reg}}\) may be common, but the framework should not assume it.
+
+### Bond funding value
+
+Funding capacity is not itself the economic value. The funding value comes from the spread between repo funding and the alternative/base funding assumption.
+
+Under a benefit-positive convention,
+
+\[
+\text{Funding benefit rate}
+\approx
+F_t^{\mathrm{repo}}
+\left(r_{\mathrm{base},t}-r_{\mathrm{repo},t}\right).
+\]
+
+Under a cost-positive ColVA convention, the same effect is written
+
+\[
+F_t^{\mathrm{repo}}
+\left(r_{\mathrm{repo},t}-r_{\mathrm{base},t}\right).
+\]
+
+---
+
+## 5. CSA Buffer and Three Economic Regimes
 
 Suppose
 
 \[
-q\_{`\mathrm{CSA}`{=tex}}=0.90,`\qquad `{=tex}q\_{`\mathrm{reg}`{=tex}}=0.96.
+q_{\mathrm{CSA}}=0.90,\qquad q_{\mathrm{reg}}=0.96.
 \]
 
-The full contractual collateral amount is
+The full CSA amount is
 
-\[ `\frac{V_t}{0.90}`{=tex}, \]
+\[
+\frac{V_t}{0.90},
+\]
 
 while the regulatory break-even amount is
 
-\[ `\frac{V_t}{0.96}`{=tex}. \]
-
-The contractual buffer is
-
-\[ `\boxed{
-B_{\mathrm{buffer},t}
-=
-\frac{V_t}{0.90}-\frac{V_t}{0.96}.
-}`{=tex} \]
-
-For (V_t=100):
-
--   Full 10% CSA amount: (111.11)
--   Regulatory break-even: (104.17)
--   Buffer: (6.94)
-
-Hence:
-
-  -----------------------------------------------------------------------
-  Actual bond (B_t)                   Interpretation
-  ----------------------------------- -----------------------------------
-  (B_t`\ge111.11`{=tex})              Full contractual CSA amount
-                                      received
-
-  (104.17`\le `{=tex}B_t\<111.11)     CSA buffer consumed partly; still
-                                      no unsecuritized funding shortfall
-
-  (B_t\<104.17)                       Regulatory collateral deficit;
-                                      (U_t=100-0.96B_t)
-  -----------------------------------------------------------------------
-
-The decomposition into "base collateral" and "free hold" can describe
-this buffer, but both pieces are the same reusable bond inventory if
-they have identical legal and operational treatment.
-
-------------------------------------------------------------------------
-
-## 5. Repo Monetization Is Separate
-
-The bond can be used as a secured funding asset.
-
-Its repo **funding capacity** is
-
-\[ `\boxed{
-F_t^{\mathrm{repo}}=q_{\mathrm{repo}}B_t.
-}`{=tex} \]
-
-For example, a 2% repo haircut gives
-
-\[ F_t\^{`\mathrm{repo}`{=tex}}=0.98B_t. \]
-
-This tells us how much cash Treasury can raise against the received
-bond.
-
-It does **not** redefine the regulatory shortfall:
-
-\[ U_t`\ne`{=tex}(V_t-q\_{`\mathrm{repo}`{=tex}}B_t)\^+. \]
-
-For example, if
-
-\[ B_t=`\frac{100}{0.96}`{=tex}=104.17 \]
-
-and (q\_{`\mathrm{repo}`{=tex}}=0.98), then:
-
-\[ q\_{`\mathrm{reg}`{=tex}}B_t=100 \]
-
-so there is no regulatory/unsecuritized funding shortfall, while
-
-\[ q\_{`\mathrm{repo}`{=tex}}B_t=102.08 \]
-
-is the bond's repo funding capacity.
-
-These are different concepts.
-
-------------------------------------------------------------------------
-
-## 6. What Is the Bond's Funding Value?
-
-Distinguish **funding capacity** from **funding value**.
-
-### Funding capacity
-
-\[ F_t\^{`\mathrm{repo}`{=tex}}=q\_{`\mathrm{repo}`{=tex}}B_t. \]
-
-This is the cash that can be raised through repo.
-
-### Funding value
-
-The economic value comes from obtaining funding at the repo rate rather
-than at the funding/discounting rate already embedded in base valuation.
-
-A first-order instantaneous contribution is
-
-\[ `\boxed{
-F_t^{\mathrm{repo}}
-\left(r_{\mathrm{base},t}-r_{\mathrm{repo},t}\right)
-}`{=tex} \]
-
-for a "benefit-positive" convention.
-
-Equivalently, under a ColVA-cost convention, the adjustment is
-
-\[ F_t\^{`\mathrm{repo}`{=tex}}
-`\left`{=tex}(r\_{`\mathrm{repo}`{=tex},t}-r\_{`\mathrm{base}`{=tex},t}`\right`{=tex}).
+\[
+\frac{V_t}{0.96}.
 \]
 
-Thus the repo haircut affects **how much funding value the bond
-provides**, while the repo rate determines the cost of obtaining that
-funding.
+The contractual buffer is therefore
 
-------------------------------------------------------------------------
+\[
+\boxed{
+B_{\mathrm{buffer},t}
+=
+\frac{V_t}{0.90}
+-
+\frac{V_t}{0.96}.
+}
+\]
 
-## 7. First-Principles ColVA / FVA
+For \(V_t=100\):
 
-Base PV already embeds (r\_{`\mathrm{base}`{=tex},t}). Therefore
-ColVA/FVA should measure the incremental difference between actual
-funding economics and that base assumption.
+\[
+B^{\mathrm{CSA}}=111.11,\qquad
+B^*=104.17,\qquad
+B_{\mathrm{buffer}}=6.94.
+\]
 
-### Repo-supported bond
+### Case 1: Full CSA / genuine excess collateral
 
-The received reusable bond has repo funding capacity
+\[
+B_t\ge \frac{V_t}{q_{\mathrm{CSA}}}.
+\]
 
-\[ F_t\^{`\mathrm{repo}`{=tex}}=q\_{`\mathrm{repo}`{=tex}}B_t. \]
+The full contractual amount is received. Relative to the regulatory minimum, genuine excess bond collateral is
 
-Its ColVA contribution is approximately
+\[
+\boxed{
+B_t^{\mathrm{excess}}
+=
+\left(
+B_t-\frac{V_t}{q_{\mathrm{reg}}}
+\right)^+.
+}
+\]
 
-\[ `\boxed{
-\mathrm{ColVA}_{\mathrm{repo}}
+### Case 2: CSA buffer partly consumed, but still fully covered
+
+\[
+\frac{V_t}{q_{\mathrm{reg}}}
+\le B_t
+<
+\frac{V_t}{q_{\mathrm{CSA}}}.
+\]
+
+The collateral cap has reduced the amount below the full CSA call, but regulatory coverage still satisfies the exposure:
+
+\[
+U_t=0.
+\]
+
+There is no unsecuritized funding shortfall.
+
+### Case 3: Deficit regime
+
+\[
+B_t<\frac{V_t}{q_{\mathrm{reg}}}.
+\]
+
+Then
+
+\[
+\boxed{
+U_t=V_t-q_{\mathrm{reg}}B_t>0.
+}
+\]
+
+This amount must be funded at \(r_{\mathrm{CoF},t}\).
+
+---
+
+## 6. ColVA / FVA: First-Principles Decomposition
+
+The base PV already embeds \(r_{\mathrm{base},t}\). Therefore ColVA/FVA should measure the **incremental funding economics relative to the base valuation**, not absolute funding costs.
+
+### 6.1 Collateral-supported base exposure
+
+Define the portion of the original exposure supported by regulatory collateral as
+
+\[
+\boxed{
+C_t=\min(V_t,q_{\mathrm{reg}}B_t).
+}
+\]
+
+This ensures
+
+\[
+\boxed{
+C_t+U_t=V_t.
+}
+\]
+
+The repo-supported ColVA contribution on this base exposure is
+
+\[
+\boxed{
+\mathrm{ColVA}_{\mathrm{base}}
 =
 \int_0^T
-E_0\left[
-\frac{
-F_t^{\mathrm{repo}}
-(r_{\mathrm{repo},t}-r_{\mathrm{base},t})
-}{DF_t}
+E_0\!\left[
+DF_t\,
+C_t
+\left(r_{\mathrm{repo},t}-r_{\mathrm{base},t}\right)
 \right]dt.
-}`{=tex} \]
+}
+\]
 
-### Regulatory collateral shortfall
+This avoids applying the base-exposure adjustment to more than the original \(V_t\).
 
-Define
+### 6.2 Regulatory shortfall
 
-\[ U_t=(V_t-q\_{`\mathrm{reg}`{=tex}}B_t)\^+. \]
-
-This portion must be funded at the marginal unsecuritized funding rate:
-
-\[ `\boxed{
+\[
+\boxed{
 \mathrm{ColVA}_{\mathrm{shortfall}}
 =
 \int_0^T
-E_0\left[
-\frac{
-U_t(r_{\mathrm{CoF},t}-r_{\mathrm{base},t})
-}{DF_t}
+E_0\!\left[
+DF_t\,
+U_t
+\left(r_{\mathrm{CoF},t}-r_{\mathrm{base},t}\right)
 \right]dt.
-}`{=tex} \]
+}
+\]
+
+where
+
+\[
+U_t=(V_t-q_{\mathrm{reg}}B_t)^+.
+\]
+
+### 6.3 Genuine excess collateral
+
+The genuine excess bond amount is
+
+\[
+B_t^{\mathrm{excess}}
+=
+\left(
+B_t-\frac{V_t}{q_{\mathrm{reg}}}
+\right)^+.
+\]
+
+Its repo funding capacity is
+
+\[
+\boxed{
+F_t^{\mathrm{excess}}
+=
+q_{\mathrm{repo}}B_t^{\mathrm{excess}}.
+}
+\]
+
+If Treasury can deploy this excess repo cash to replace marginal unsecured funding elsewhere in the bank, a natural cost-positive adjustment is
+
+\[
+\boxed{
+\mathrm{ColVA}_{\mathrm{excess}}
+=
+\int_0^T
+E_0\!\left[
+DF_t\,
+F_t^{\mathrm{excess}}
+\left(r_{\mathrm{repo},t}-r_{\mathrm{CoF},t}\right)
+\right]dt.
+}
+\]
+
+Since normally \(r_{\mathrm{repo}}<r_{\mathrm{CoF}}\), this term is typically negative: a funding benefit.
+
+This term should be included only if the trade/XVA framework is intended to capture the Treasury value of excess reusable collateral. If that value is captured centrally through FTP or Treasury, including it again would double count.
+
+### 6.4 Total
 
 Subject to the desk's sign convention,
 
-\[ `\boxed{
+\[
+\boxed{
 \mathrm{ColVA/FVA}
 \approx
-\mathrm{ColVA}_{\mathrm{repo}}
+\mathrm{ColVA}_{\mathrm{base}}
 +
 \mathrm{ColVA}_{\mathrm{shortfall}}
 +
-\mathrm{ExcessValue}.
-}`{=tex} \]
+\mathrm{ColVA}_{\mathrm{excess}}.
+}
+\]
 
-This is a spread adjustment to base valuation, not an absolute repo or
-funding charge.
+---
 
-------------------------------------------------------------------------
+## 7. Repo Monetization Uplift Is Not Genuine Excess Collateral
 
-## 8. Genuine Excess / Free-Hold Collateral
+If \(q_{\mathrm{repo}}>q_{\mathrm{reg}}\), then even in a deficit regime the bond may raise more repo cash than its regulatory recognized value:
 
-If the actual CSA requires more bond than the regulatory minimum,
-
-\[ B_t\>`\frac{V_t}{q_{\mathrm{reg}}}`{=tex}, \]
-
-the difference
-
-\[ `\boxed{
-B_t^{\mathrm{excess}}
+\[
+\boxed{
+M_t
 =
-\left(B_t-\frac{V_t}{q_{\mathrm{reg}}}\right)^+
-}`{=tex} \]
+(q_{\mathrm{repo}}-q_{\mathrm{reg}})B_t.
+}
+\]
 
-is a useful definition of contractual excess/free hold.
+Example:
 
-If this bond is equally rehypothecatable and repoable, it is
-operationally part of the same collateral inventory and also has funding
-value.
+\[
+B=90,\quad q_{\mathrm{reg}}=0.96,\quad q_{\mathrm{repo}}=0.98.
+\]
 
-Whether its economic benefit should be valued at the same marginal rate
-as the collateral supporting the trade depends on how Treasury can
-deploy the resulting liquidity. This should be an explicit modeling
-assumption rather than inferred solely from the regulatory haircut.
+Then
 
-------------------------------------------------------------------------
+\[
+q_{\mathrm{reg}}B=86.4,\qquad
+q_{\mathrm{repo}}B=88.2,
+\]
+
+so
+
+\[
+M=1.8.
+\]
+
+This \(1.8\) is **repo monetization uplift**, not genuine excess collateral. The trade still has a regulatory shortfall
+
+\[
+U=100-86.4=13.6.
+\]
+
+Do not label \(M_t\) as "free hold" or excess collateral.
+
+---
+
+## 8. Worked Example: \(V=100\)
+
+Use
+
+\[
+q_{\mathrm{CSA}}=0.90,\qquad
+q_{\mathrm{reg}}=0.96,\qquad
+q_{\mathrm{repo}}=0.98.
+\]
+
+### Case 1: Full CSA amount
+
+\[
+B=111.11.
+\]
+
+Regulatory coverage:
+
+\[
+0.96(111.11)=106.67>100.
+\]
+
+Hence
+
+\[
+C=100,\qquad U=0.
+\]
+
+Genuine excess bond:
+
+\[
+B^{\mathrm{excess}}
+=
+111.11-104.17
+=
+6.94.
+\]
+
+Excess repo funding capacity:
+
+\[
+F^{\mathrm{excess}}
+=
+0.98(6.94)
+=
+6.80.
+\]
+
+Adjustment:
+
+\[
+\boxed{
+100(r_{\mathrm{repo}}-r_{\mathrm{base}})
++
+6.80(r_{\mathrm{repo}}-r_{\mathrm{CoF}})
+}
+\]
+
+if the value of excess reusable collateral is captured in this trade.
+
+### Case 2: Cap consumes part of CSA buffer
+
+Take
+
+\[
+B=107.
+\]
+
+Then
+
+\[
+0.96(107)=102.72>100.
+\]
+
+Thus
+
+\[
+C=100,\qquad U=0.
+\]
+
+Genuine excess bond relative to the regulatory minimum:
+
+\[
+B^{\mathrm{excess}}
+=
+107-104.17
+=
+2.83.
+\]
+
+Excess repo capacity:
+
+\[
+F^{\mathrm{excess}}
+=
+0.98(2.83)
+\approx2.77.
+\]
+
+Adjustment:
+
+\[
+\boxed{
+100(r_{\mathrm{repo}}-r_{\mathrm{base}})
++
+2.77(r_{\mathrm{repo}}-r_{\mathrm{CoF}})
+}
+\]
+
+if excess collateral value is recognized.
+
+### Case 3: Regulatory deficit
+
+Take
+
+\[
+B=90.
+\]
+
+Then
+
+\[
+C=0.96(90)=86.4,
+\]
+
+and
+
+\[
+U=100-86.4=13.6.
+\]
+
+There is no genuine excess collateral:
+
+\[
+B^{\mathrm{excess}}=0.
+\]
+
+Adjustment:
+
+\[
+\boxed{
+86.4(r_{\mathrm{repo}}-r_{\mathrm{base}})
++
+13.6(r_{\mathrm{CoF}}-r_{\mathrm{base}})
+}
+\]
+
+with
+
+\[
+86.4+13.6=100.
+\]
+
+Although the bond can physically raise
+
+\[
+0.98(90)=88.2
+\]
+
+in repo, the additional
+
+\[
+88.2-86.4=1.8
+\]
+
+is repo monetization uplift relative to regulatory recognition, not a separate part of the \(100\) base funding requirement.
+
+---
 
 ## 9. Interpretation of the Base Rate
 
-The central modeling question is what (r\_{`\mathrm{base}`{=tex}})
-represents.
+The central modeling question is what \(r_{\mathrm{base}}\) represents.
 
-If the base trade is valued using a CSA funding/discounting convention
-such as
+If base valuation uses a CSA funding/discounting convention such as
 
-\[ r\_{`\mathrm{base}`{=tex}}=`\mathrm{€STR}`{=tex}+5`\text{ bp}`{=tex}
+\[
+r_{\mathrm{base}}=\mathrm{€STR}+5\text{ bp}
 \]
 
 (or €STR + 10 bp), then:
 
--   repo funding is valued relative to (r\_{`\mathrm{base}`{=tex}}): \[
-    r\_{`\mathrm{repo}`{=tex}}-r\_{`\mathrm{base}`{=tex}}; \]
--   an unsecuritized funding deficit is valued relative to
-    (r\_{`\mathrm{base}`{=tex}}): \[
-    r\_{`\mathrm{CoF}`{=tex}}-r\_{`\mathrm{base}`{=tex}}. \]
+- collateral-supported funding is adjusted by
+  \[
+  r_{\mathrm{repo}}-r_{\mathrm{base}};
+  \]
+- genuine unsecuritized shortfall is adjusted by
+  \[
+  r_{\mathrm{CoF}}-r_{\mathrm{base}};
+  \]
+- genuine excess reusable collateral, if valued here, is naturally worth approximately
+  \[
+  r_{\mathrm{repo}}-r_{\mathrm{CoF}}
+  \]
+  under a cost-positive convention.
 
-Before implementation, confirm whether the €STR + 5/10 bp term is
-already embedded in base PV or is a separate CSA-funding adjustment. It
-must not be counted twice.
+Confirm whether the €STR + 5/10 bp term is already embedded in base PV or applied separately. It must not be counted twice.
 
-------------------------------------------------------------------------
+---
 
-## 10. Core Framework
+## 10. Core Takeaway
 
-Keep four questions separate:
+Keep the following concepts separate:
 
-1.  **CSA --- how much bond does the client actually post?** \[ B_t
-    `\leftarrow `{=tex}h\_{`\mathrm{CSA}`{=tex}}`\text{ and collateral cap}`{=tex}.
-    \]
-
-2.  **Regulation --- is there a collateral deficit requiring
-    unsecuritized funding?** \[
-    U_t=(V_t-q\_{`\mathrm{reg}`{=tex}}B_t)\^+. \]
-
-3.  **Repo/Treasury --- what funding capacity and value does the
-    received bond provide?** \[
-    F_t\^{`\mathrm{repo}`{=tex}}=q\_{`\mathrm{repo}`{=tex}}B_t,
-    `\qquad`{=tex}
-    `\text{value}`{=tex}`\sim `{=tex}F_t\^{`\mathrm{repo}`{=tex}}(r\_{`\mathrm{base}`{=tex}}-r\_{`\mathrm{repo}`{=tex}}).
-    \]
-
-4.  **FVA/ColVA --- what incremental adjustment is required relative to
-    base valuation?** \[
-    r\_{`\mathrm{repo}`{=tex}}-r\_{`\mathrm{base}`{=tex}}
-    `\quad`{=tex}`\text{for repo-supported funding,}`{=tex} \] \[
-    r\_{`\mathrm{CoF}`{=tex}}-r\_{`\mathrm{base}`{=tex}}
-    `\quad`{=tex}`\text{for true funding shortfall.}`{=tex} \]
-
-**Key distinction:** regulatory haircut determines the shortfall
-threshold; repo haircut determines the funding capacity/value of the
-bond. They should not be collapsed into a single threshold.
+1. **CSA haircut** determines how much bond the client is contractually asked to post.
+2. **Regulatory haircut** determines whether there is a true collateral/funding shortfall:
+   \[
+   U_t=(V_t-q_{\mathrm{reg}}B_t)^+.
+   \]
+3. **Repo haircut** determines how much cash the received bond can raise:
+   \[
+   F_t^{\mathrm{repo}}=q_{\mathrm{repo}}B_t.
+   \]
+4. **Repo rate** determines the cost of secured monetization.
+5. **Cost of funds** applies to the genuine unsecuritized shortfall.
+6. **ColVA/FVA** measures each actual funding channel relative to the rate already embedded in base valuation.
+7. **Genuine excess collateral** and **repo monetization uplift** are different quantities and should not be conflated.
