@@ -1,0 +1,131 @@
+Additional instructions for Section 6 — reduced-form representation and alternative monetization policies
+
+Please extend the previous revision to Section 6. Our discussion of (r_{rm alt}) reveals that there are two coherent production policies for handling repo capacity beyond this trade's own funding requirement. Section 6 should derive and compare both, rather than treating “no excess repoing” merely as a sensitivity.
+
+1. Start from net funding quantities
+
+Define potential repo funding capacity
+
+$$ F_t=rho q_{rm repo}B_t. $$
+
+Then define
+
+$$ S_t=min(V_t,F_t), $$ $$ U_t^f=(V_t-F_t)^+, $$ $$ X_t^f=(F_t-V_t)^+. $$
+
+Interpret these directly
+
+(S_t) repo capacity that can be used to fund this trade;
+(U_t^f) residual funding shortfall after available repo capacity;
+(X_t^f) potential repo capacity beyond this trade's own funding requirement.
+
+Emphasize that (X_t^f), rather than the Channel-3 attribution quantity (X_t=(F_t-C_t)^+), is the economically genuine excess funding capacity. The latter can include repo cash that still finances this trade's own regulatoryunrecognized collateral slice.
+
+2. Policy A — full monetization with excess cash displacing marginal CoF
+
+This is the existing standingbase-case assumption
+
+$$ r_{rm alt}=r_{rm CoF}. $$
+
+Under this policy, all usable collateral may be repoed, including collateral generating cash beyond this trade's own funding requirement. Genuine excess cash is assumed to displace marginal unsecured funding elsewhere in the deskportfolio.
+
+Derive
+
+$$ boxed{ S_t(r_{rm repo}-r_{rm base}) + U_t^f(r_{rm CoF}-r_{rm base}) + X_t^f(r_{rm repo}-r_{rm CoF}) } $$
+
+as the reduced-form total.
+
+Explain that this policy is defensible where the deskTreasury is a marginal unsecured borrower and its FTP framework supports valuing incremental repo cash at avoided marginal CoF. Its advantage is a consistent and relatively simple systematic implementation, but the cross-trade funding assumption should be explicit.
+
+3. Policy B — repo only to fund this trade
+
+Introduce a second coherent production policy
+
+If the desk does not attribute cross-trade funding benefits to the originating trade, repo collateral only to the extent required to fund this trade. Genuine excess collateral is left unmonetized.
+
+Potential repo capacity remains
+
+$$ F_t=rho q_{rm repo}B_t, $$
+
+but actual repo funding used by the trade is capped at
+
+$$ boxed{R_t=S_t=min(V_t,F_t)}. $$
+
+There is therefore no genuine excess-cash contribution. Derive
+
+$$ boxed{ S_t(r_{rm repo}-r_{rm base}) + U_t^f(r_{rm CoF}-r_{rm base}) } $$
+
+and show the equivalent representation
+
+$$ boxed{ V_t(r_{rm CoF}-r_{rm base}) + S_t(r_{rm repo}-r_{rm CoF}) }. $$
+
+Explain the second representation economically first treat the whole exposure as marginally unsecured-funded, then replace up to (S_t) of that funding with repo funding.
+
+Policy B can be represented algebraically as a zero value for genuine excess monetization (or (r_{rm alt}=r_{rm repo}) on (X_t^f)), but in the prose prefer “no monetization of genuine excess collateral” rather than describing (r_{rm repo}) as an alternative investment rate.
+
+4. Highlight where the two policies differ
+
+Make explicit that the policies are identical whenever
+
+$$ F_tle V_t. $$
+
+Both then give
+
+$$ F_t(r_{rm repo}-r_{rm base}) +(V_t-F_t)(r_{rm CoF}-r_{rm base}). $$
+
+They differ only when
+
+$$ F_tV_t. $$
+
+Policy A attributes
+
+$$ (F_t-V_t)(r_{rm repo}-r_{rm CoF}) $$
+
+to the trade because excess repo cash is assumed to displace unsecured funding elsewhere.
+
+Policy B stops monetization once this trade is fully funded, so this term is zero.
+
+Present this distinction concisely as a funding-policy choice, not as an algebraic ambiguity.
+
+5. Clarify the role of (q_{rm reg})
+
+Correct any remaining statement that Proposition 2 or the reduced form requires (B_t) to be “exogenous.”
+
+The reduced-form identities do not require (B_t) to be exogenous. Under the collateral process specified earlier in the paper,
+
+$$ B_t= minleft( frac{V_t}{q_{rm CSA}}, B_t^{rm cap} right), $$
+
+(B_t) follows the CSA call until the available collateral cap binds.
+
+Under both Policy A and Policy B, (q_{rm reg}) does not directly enter the reduced-form cash-funding result
+
+$$ V_trightarrow B_trightarrow F_t $$
+
+determines the funding economics.
+
+(q_{rm reg}) continues to determine the collateral-recognitionchannel attribution through
+
+$$ C_t=min(V_t,q_{rm reg}B_t), qquad U_t=(V_t-q_{rm reg}B_t)^+, $$
+
+but different (q_{rm reg}) values can produce different Channel 123 attribution while leaving the same total funding VA.
+
+State the caveat precisely (q_{rm reg}) can affect total ColVA indirectly if the applicable regulatory requirement changes the collateral actually posted and therefore changes (B_t). What matters is not whether (B_t) is endogenous or exogenous, but whether the collateral process (B_t) itself depends on (q_{rm reg}).
+
+6. Relationship to the general (r_{rm alt}) discussion
+
+Section 4.3 should retain the general economic framework for (r_{rm alt}). Section 6 should then make clear that the two principal production choices are
+
+$$ boxed{ begin{array}{ll} text{Policy A} & r_{rm alt}=r_{rm CoF} quadtext{and monetize genuine excess capacity;}[3pt] text{Policy B} & text{do not monetize genuine excess capacity.} end{array}} $$
+
+Repo-and-park using (r_{rm cash}) may be mentioned as an intermediateoptional policy, but detailed treatment belongs in the appendix rather than interrupting the main Section 6 derivation.
+
+Likewise, explain that (r_{rm base}) is generally not a natural choice for (r_{rm alt}) it is the valuation benchmark for this trade, whereas (r_{rm alt}) concerns the opportunity value of cash beyond this trade's own funding requirement.
+
+7. Keep Section 6 concise
+
+The main conceptual takeaway should be
+
+$$ boxed{ text{Up to }V_t,text{ repo capacity funds this trade. Beyond }V_t, text{ treatment depends on the chosen funding policy.} } $$
+
+Detailed proofs, the fully general arbitrary-(r_{rm alt}) derivation, repo-and-park cases, sensitivity tables, and trade-vs-portfolio allocation discussion should be moved to the appendix.
+
+If Proposition 2 is retained as a named proposition, make clear that it describes Policy A, rather than presenting it as the unique reduced-form representation of the model. Add the corresponding Policy B result alongside it (either as a second propositioncorollary or simply as “No-excess-monetization reduced form”).
