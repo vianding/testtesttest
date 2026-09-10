@@ -1,62 +1,271 @@
-Update the existing Appendix section “Regulatory and Contractual Basis” rather than creating a new standalone regulatory-haircut appendix.
+Please perform a full structural rewrite of the white paper rather than incrementally editing the existing Sections 3–6.
 
-Add a concise subsection covering the regulatory basis for haircuts on non-cash VM collateral across Canada, UK, EU and U.S. The purpose is to substantiate the paper's use of \(q_{\rm reg}\) and clearly distinguish it from \(q_{\rm CSA}\) and \(q_{\rm repo}\).
+We have materially simplified and corrected the conceptual framework after reviewing the original methodology and the regulatory treatment of securitisation SPVs. The revised paper should be rebuilt around the distinction between contractual collateral mechanics and actual funding economics.
 
-The subsection should answer:
+1. Core conceptual change
 
-Do applicable margin regulations prescribe or provide a methodology/minimum haircut for eligible non-cash collateral used as VM?
+Remove the current regulatory-recognition-based three-channel framework built around quantities such as
 
-The answer is yes, subject to jurisdiction, entity/counterparty scope and collateral eligibility.
+$$ C_t=\min(V_t,q_{\rm reg}B_t),\quad U_t,\quad A_t,\quad G_t,\quad X_t $$
 
-Use primary regulatory sources only, and quote the operative language briefly and exactly.
+and remove the associated derivations, identities, correction terms and general-\(r_{\rm alt}\) appendix material.
 
-Canada — OSFI E-22, §4.2 Haircuts. Cite the provision stating:
+In particular, regulatory recognized collateral value \(q_{\rm reg}B_t\) should not be treated as an intermediate funding boundary. A regulatory haircut determines the value at which collateral is recognized for regulatory margin purposes; it does not determine the amount of cash that can be raised from that collateral.
 
-“Any margin exchanged must be haircutted to account for potential changes in the value of the collateral.”
+The core economic chain should instead be:
 
-Also cite the provision stating:
+$$ \boxed{\text{CSA / transaction terms}\rightarrow B_t} $$ $$ \boxed{\text{reuse + repo market}\rightarrow F_t} $$ $$ \boxed{\text{actual funding surplus/shortfall}\rightarrow ColVA/FVA}. $$
+2. Contractual collateral amount
 
-“Otherwise, standard supervisory haircuts from the table below must be used.”
+Let
 
-Explain that the standardized schedule gives a 4% haircut for qualifying AAA–AA− sovereign debt with residual maturity \(>5\) years, while an eligible model-based methodology may apply where permitted.
+$$ V_t>0 $$
 
-EU — Commission Delegated Regulation (EU) 2016/2251, Annex II. Cite the adjusted-collateral-value methodology
+denote positive swap MTM from the dealer's perspective.
 
-$$ C_{\rm value}=C(1-H_C-H_{FX}) $$
+Let \(q_{\rm CSA}=1-h_{\rm CSA}\) denote the contractual collateral valuation percentage under the CSA/transaction documentation.
 
-and the operative requirement that counterparties apply “at least the haircuts provided” in the relevant tables. Note the applicable 4% standardized haircut for the corresponding high-quality sovereign/government debt category with residual maturity \(>5\) years.
+In the uncapped case:
 
-UK — UK EMIR margin RTS / retained and amended version of Delegated Regulation 2016/2251, Annex II. Cite the equivalent UK requirement that counterparties apply “at least the haircuts provided” in the tables, together with the corresponding 4% \(>5\)-year high-quality sovereign/government debt haircut. Use the current FCA/PRA/UK legislation source rather than treating the EU text itself as evidence of the current UK rule.
+$$ B_t=\frac{V_t}{q_{\rm CSA}}. $$
 
-U.S. — explain the scope distinction explicitly. Cite the CFTC and/or U.S. prudential-regulator margin rules showing that, where non-cash collateral is eligible for VM, its value is subject to prescribed regulatory haircuts/discounts. Include the corresponding 4% standardized haircut for qualifying government debt with residual maturity \(>5\) years. Also state that U.S. rules can require cash VM for certain counterparty combinations, so the non-cash haircut schedule should not be presented as universally applicable to every U.S. VM relationship.
+For a SPIRE/repack structure with a finite collateral pool, allow:
 
-Add a compact comparison table with columns such as:
+$$ B_t= \min\left( \frac{V_t}{q_{\rm CSA}}, B_t^{\rm cap} \right), $$
 
-Jurisdiction	Non-cash VM haircut framework	\(>5y\) qualifying sovereign/government example	Primary source
-Canada	Standard supervisory haircut or permitted model methodology	4%	OSFI E-22 §4.2
-EU	Minimum standardized haircut schedule	4%	Delegated Regulation 2016/2251 Annex II
-UK	Minimum standardized haircut schedule	4%	UK EMIR Margin RTS Annex II
-U.S.	Prescribed haircut where non-cash VM is eligible	4%	CFTC / Prudential Margin Rules
+subject to confirmation from the actual transaction documentation that this correctly represents the contractual mechanics when the pool is exhausted.
 
-Do not imply that every sovereign bond receives 4%. The applicable haircut depends on issuer/category, credit quality, residual maturity, currency treatment and the precise regulatory regime.
+Do not assume that a binding pool cap automatically creates a regulatory VM deficiency or requires cash substitution. What happens when the cap binds is a contractual/legal question.
 
-Then connect the regulatory evidence directly to the notation used in the paper:
+Clarify the role of the CSA collateral requirement. The CSA/transaction documentation—not the VA model—determines the amount and type of collateral delivered. The contractual valuation percentage \(q_{\rm CSA}\) may reflect negotiated credit-support/risk-management terms and does not require a regulatory haircut to justify its existence. For example, \(q_{\rm CSA}=90\%\) means €1 of eligible bond market value counts as €0.90 of contractual credit support, so absent a structural cap, \(V_t=100\) implies \(B_t=111.11\). The VA model should take this contractual collateral process as an input rather than independently determining how much collateral ought to be posted. If a pool cap binds, do not assume that the VA desk requires additional collateral or cash substitution; the residual treatment is determined by the transaction documentation.
 
-$$ H_{\rm reg}=4\% \quad\Longrightarrow\quad q_{\rm reg}=1-H_{\rm reg}=0.96 $$
+3. Rehypothecation and repo funding
 
-for the paper's illustrative qualifying \(>5\)-year high-quality sovereign collateral.
+Let
 
-Make the conceptual distinction explicit:
+$$ \rho_t\in\{0,1\} $$
 
-$$ \boxed{ q_{\rm CSA}\neq q_{\rm reg}\neq q_{\rm repo} } $$
-\(q_{\rm CSA}\): contractual valuation percentage determining the collateral call under the CSA;
-\(q_{\rm reg}\): regulatory recognition of eligible collateral after the applicable prudential haircut;
-\(q_{\rm repo}\): market funding/advance rate obtainable by repoing the collateral.
+represent whether received collateral is legally reusable/rehypothecatable.
 
-The regulatory evidence supports \(q_{\rm reg}\); it does not imply anything about the contractual CSA haircut or the repo-market haircut.
+Let
 
-Preserve the existing contractual discussion in the appendix, including the legal basis for collateral transfer and rehypothecation/reuse. Integrate this new material so the appendix tells one coherent story:
+$$ q_{\rm repo}=1-h_{\rm repo} $$
 
-$$ \text{CSA determines what is posted} \rightarrow \text{regulation determines recognized margin value} \rightarrow \text{reuse rights determine whether it can be monetized} \rightarrow \text{repo market determines cash proceeds}. $$
+be the actual repo advance rate / financing value of the bond.
 
-Keep this subsection concise. The purpose is documentary support for assumptions used in the model, not a comprehensive survey of global margin regulation. Put exact regulatory citations/links in the existing reference format used by the appendix.
+Define maximum cash funding capacity from received collateral:
+
+$$ F_t=\rho_t q_{\rm repo}B_t. $$
+
+Make explicit that \(q_{\rm CSA}\) and \(q_{\rm repo}\) have completely different economic meanings:
+
+$$ q_{\rm CSA}:\quad V_t\rightarrow\text{bond MV delivered}, $$ $$ q_{\rm repo}:\quad\text{bond MV}\rightarrow\text{cash funding capacity}. $$
+
+Do not introduce \(q_{\rm reg}\) between these two steps.
+
+4. Funding decomposition
+
+Retain the methodology's assumption that positive swap MTM \(V_t\) is the relevant funding target, but state this explicitly as a base valuation/FVA methodology assumption, rather than deriving it from the existence of collateral.
+
+Define:
+
+$$ S_t=\min(V_t,F_t), $$ $$ U_t^f=(V_t-F_t)^+, $$ $$ X_t^f=(F_t-V_t)^+. $$
+
+Here:
+
+\(S_t\) is the portion of the trade's funding requirement that can be met through repo of received collateral;
+\(U_t^f\) is the residual amount requiring unsecured funding;
+\(X_t^f\) is genuine repo funding capacity beyond this trade's \(V_t\)-sized funding requirement.
+
+Emphasize:
+
+$$ V_t=S_t+U_t^f, \qquad F_t=S_t+X_t^f. $$
+
+These should become the primary funding state variables, rather than appearing later as a “reduced-form representation.”
+
+5. ColVA/FVA equation
+
+Let \(r_{\rm base,t}\) denote the funding/discounting benchmark already embedded in base valuation, \(r_{\rm repo,t}\) the secured repo funding rate, and \(r_{\rm CoF,t}\) the dealer's marginal unsecured cost of funds.
+
+Use the base-case assumption:
+
+$$ r_{\rm alt,t}=r_{\rm CoF,t}, $$
+
+justified by assuming the dealer/Treasury is a marginal net unsecured borrower, so genuine incremental repo cash can displace marginal unsecured funding elsewhere.
+
+The main full-monetization formula should therefore be:
+
+$$ \boxed{ ColVA_0= \int_0^T E_0\left[ DF_t^{\rm base} \left\{ S_t(r_{\rm repo,t}-r_{\rm base,t}) + U_t^f(r_{\rm CoF,t}-r_{\rm base,t}) + X_t^f(r_{\rm repo,t}-r_{\rm CoF,t}) \right\} \right]dt } $$
+
+under the paper's sign convention that positive ColVA represents a cost and
+
+$$ PV^{adj}=PV^{base}-ColVA. $$
+
+Check the sign convention carefully and make it consistent throughout.
+
+Also show the equivalent interpretation:
+
+$$ V_t(r_{\rm CoF,t}-r_{\rm base,t}) + S_t(r_{\rm repo,t}-r_{\rm CoF,t}) + X_t^f(r_{\rm repo,t}-r_{\rm CoF,t}), $$
+
+where applicable.
+
+Explain economically: start from funding the \(V_t\)-sized position unsecured; repo funding replaces unsecured funding for \(S_t\); genuine additional repo capacity \(X_t^f\), if monetized, displaces marginal unsecured funding elsewhere.
+
+6. Alternative funding policy
+
+Retain a secondary policy in which the dealer repos received collateral only up to the funding requirement of this trade and does not monetize genuine excess:
+
+$$ R_t=S_t=\min(V_t,F_t). $$
+
+Then:
+
+$$ \boxed{ ColVA_0^{\rm trade-only} = \int E_0[ DF_t^{\rm base} \{ S_t(r_{\rm repo,t}-r_{\rm base,t}) + U_t^f(r_{\rm CoF,t}-r_{\rm base,t}) \} ]dt } $$
+
+or equivalently
+
+$$ V_t(r_{\rm CoF,t}-r_{\rm base,t}) + S_t(r_{\rm repo,t}-r_{\rm CoF,t}). $$
+
+State clearly that the two policies are identical whenever
+
+$$ F_t\le V_t $$
+
+and differ only when genuine excess repo capacity exists:
+
+$$ F_t>V_t. $$
+7. Regulatory margin treatment
+
+Do not carry \(q_{\rm reg}\) as a core ColVA state variable.
+
+Move regulatory margin treatment to the Regulatory and Contractual Basis section and explain its upstream role.
+
+The paper should say that regulatory non-cash collateral haircuts can matter when:
+
+the transaction is within the applicable bilateral-margin regime; and
+the regulatory collateral requirement is binding relative to the contractual collateral requirement.
+
+In that situation regulation may influence the amount/type of collateral that must be delivered and hence indirectly affect \(B_t\). Once actual \(B_t\) is established, however, regulatory recognized value should not be treated as a separate cash-funding quantity.
+
+Preserve the useful regulatory research for Canada, UK, EU and US, but substantially shorten it and frame it as scope/constraint analysis, not a third valuation channel.
+
+8. SPIRE / securitisation-SPV treatment
+
+Add a concise but important discussion that securitisation SPVs can receive special regulatory treatment.
+
+For the UK, discuss Article 30a of the UK bilateral-margin technical standards concerning qualifying OTC derivatives entered into by securitisation special-purpose entities. Explain accurately that, subject to the provision's conditions, the securitisation SPV is not required to post variation margin, while it may collect cash VM from its counterparty, and neither counterparty is required to post or collect initial margin.
+
+Do not state that “SPIRE is exempt” unless the transaction-specific conditions have been verified. Instead state:
+
+The applicability of the securitisation-SPV treatment is a transaction-specific legal determination. If applicable, a binding collateral-pool cap does not by itself imply failure to satisfy a regulatory VM-posting requirement, because the SPV may not be subject to such a posting requirement.
+
+Also briefly note that other jurisdictions can contain exclusions/exemptions for certain SPVs or intragroup transactions. Keep this subordinate to the core model.
+
+9. Initial Margin / mysterious HC(IM)
+
+Do not infer the meaning of HC(IM)=96% in the methodology correspondence.
+
+Explicitly flag this as an open methodology question:
+
+Does IM mean Initial Margin?
+Is 96% a regulatory collateral valuation percentage?
+Is it an internal collateral/funding haircut?
+Or does it represent the effective secured-financing/repo advance rate?
+
+The paper must not equate a regulatory/IM haircut with repo funding proceeds without evidence.
+
+Also distinguish actual Initial Margin from VM. If regulatory IM is relevant, its funding economics/MVA are conceptually separate from the non-cash VM ColVA model. Do not add an MVA model unless needed for scope.
+
+10. Reuse and legal rights
+
+Retain the discussion of rehypothecation/reuse rights, because this remains fundamental:
+
+$$ \rho=0\Rightarrow F_t=0. $$
+
+A bond may have collateral value while providing no funding benefit if the dealer cannot legally reuse it.
+
+Make clear that regulatory recognition, contractual eligibility and legal reuse are separate questions.
+
+11. Remove obsolete material
+
+Delete, rather than merely de-emphasize, all material whose sole purpose was supporting the previous \(q_{\rm reg}\)-based three-channel model, including:
+
+$$ C_t=\min(V_t,q_{\rm reg}B_t), $$
+
+\(A_t,G_t,U_t,X_t\), the old Channel 1/2/3 decomposition, the distinction between old \(X_t=(F_t-C_t)^+\) and genuine excess, the bridge variable \((S_t-C_t)^+\), the general-\(r_{\rm alt}\) correction term, and proofs showing equivalence between that framework and the reduced-form model.
+
+These were useful diagnostically but are no longer part of the desired model.
+
+In particular, remove the current appendix formula containing
+
+$$ (S_t-C_t)^+(r_{\rm CoF,t}-r_{\rm alt,t}), $$
+
+since that correction exists only because the previous framework used regulatory recognition as an artificial funding boundary.
+
+12. Worked examples
+
+Rewrite the numerical examples using only:
+
+$$ V,\quad q_{\rm CSA},\quad B,\quad \rho,\quad q_{\rm repo},\quad F,\quad S,\quad U^f,\quad X^f. $$
+
+Include at least:
+
+Case A: repo capacity exceeds trade funding
+
+$$ V=100,\quad q_{\rm CSA}=0.90,\quad B=111.11,\quad q_{\rm repo}=0.98, $$
+
+giving
+
+$$ F=108.89,\quad S=100,\quad U^f=0,\quad X^f=8.89. $$
+
+Case B: pool cap binds
+
+For example:
+
+$$ V=100,\quad B^{cap}=90,\quad q_{\rm repo}=0.98, $$
+
+giving
+
+$$ B=90,\quad F=88.2,\quad S=88.2,\quad U^f=11.8,\quad X^f=0. $$
+
+Do not describe the €11.8 as a “regulatory collateral deficit.” It is the residual funding amount under the model's \(V\)-sized funding-target assumption.
+
+Case C: collateral cannot be reused
+
+$$ \rho=0\Rightarrow F=0,\quad S=0,\quad U^f=V. $$
+
+Explain the economics of each example rather than merely presenting formulas.
+
+13. Discounting
+
+Review the discount-factor convention throughout. If
+
+$$ DF_t^{base}=P(0,t)<1, $$
+
+future funding cash flows should ordinarily be multiplied by the discount factor. Do not retain the original screenshot's division by \(DF_t\) without explicitly establishing that it uses a reciprocal accumulation-factor convention.
+
+Ensure there is no double counting between \(r_{\rm base}\), the base PV and the ColVA overlay.
+
+14. Scope and open questions
+
+End with a short list of assumptions requiring business/legal confirmation:
+
+Why does the firm's base FVA methodology treat positive swap MTM \(V_t\) as a \(V_t\)-sized funding target?
+What exactly does HC(IM)=96% mean in the methodology correspondence?
+What repo/secured-financing haircut and rate should actually be used for the relevant bond collateral?
+Are the bonds legally reusable/rehypothecatable?
+For SPIRE, what exactly happens contractually when the designated collateral pool is exhausted?
+Does the particular SPIRE swap qualify for the relevant securitisation-SPV regulatory treatment?
+
+Do not answer these questions by assumption. Clearly distinguish confirmed methodology, legal/regulatory facts, modeling assumptions and items requiring confirmation.
+
+Overall writing objective
+
+The rewritten paper should be materially shorter and simpler than the current version. Do not preserve complexity merely because it already exists.
+
+The central economic story should be understandable from:
+
+$$ \boxed{ V_t \xrightarrow{q_{\rm CSA}} B_t \xrightarrow{\rho,q_{\rm repo}} F_t \xrightarrow{\text{compare with }V_t} \{S_t,U_t^f,X_t^f\} \xrightarrow{\text{funding spreads}} ColVA } $$
+
+
+Regulation determines whether and how the collateral arrangement is constrained; it is not itself another source of cash funding.
+
+Treat the existing paper as source material, not as a structure that must be preserved. Rewrite sections, equations, examples and appendix organization as necessary to make the document internally coherent from first principles.
