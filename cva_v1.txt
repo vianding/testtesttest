@@ -1,0 +1,691 @@
+Please draft a new technical white paper on:
+
+    CVA for Derivatives Collateralized by Non-Cash Variation Margin
+
+Use the existing “FVA / ColVA for Non-Cash VM” paper as the reference for transaction structure, notation, CSA collateral mechanics, SPIRE context, legal/regulatory background, and writing style.
+
+However, DO NOT mechanically adapt the FVA equations into CVA equations.
+
+The purpose of this paper is to derive the CVA treatment independently from first principles. The fundamental economic question is different:
+
+    FVA/ColVA:
+        How much funding can the dealer obtain from received collateral,
+        and at what funding cost?
+
+    CVA:
+        If the counterparty defaults, what loss does the dealer suffer
+        after taking account of the collateral that can actually be
+        realized through the close-out/liquidation process?
+
+The new paper should be concise, rigorous, self-contained, and structured so that the economic logic is established before implementation details or regulatory background.
+
+============================================================
+1. SCOPE AND CENTRAL QUESTION
+============================================================
+
+Begin with a short Scope section.
+
+Consider the same asset-side case as the FVA paper:
+
+    V_t > 0
+
+where the client/counterparty owes the dealer and posts non-cash collateral
+(e.g. bonds) as variation margin.
+
+The paper should answer:
+
+    How should non-cash collateral modify the dealer’s CVA exposure and
+    loss at counterparty default?
+
+State explicitly that the liability-side case is outside scope unless needed
+for symmetry.
+
+Also distinguish clearly between:
+
+1. pricing/accounting CVA;
+2. regulatory CVA capital / counterparty credit-risk capital.
+
+The core paper should address economic/pricing CVA. Regulatory capital
+treatment may be discussed separately in an appendix and must not silently
+determine the pricing-CVA formula.
+
+============================================================
+2. START FROM UNCOLLATERALIZED CVA
+============================================================
+
+Establish the ordinary CVA framework first.
+
+For counterparty default time tau, write the generic loss-at-default concept as
+
+    Loss_tau
+        = LGD × positive residual exposure at default
+
+and CVA schematically as
+
+    CVA_0
+        = E_0[
+            DF(0,tau)
+            × loss at tau
+            × 1_{tau <= T}
+          ]
+
+or the equivalent survival/default-intensity representation used by the
+firm’s existing CVA framework.
+
+Do not unnecessarily rebuild the firm’s entire CVA infrastructure.
+
+The purpose is to identify how non-cash collateral changes the exposure/loss
+term supplied to the existing CVA machinery.
+
+Make clear that the economically relevant object is exposure at/after default,
+not the ordinary pre-default funding capacity of collateral.
+
+============================================================
+3. IMPORT THE COLLATERAL PROCESS FROM THE FVA PAPER
+============================================================
+
+Reuse the FVA paper’s contractual collateral process.
+
+Let:
+
+    V_t       = derivative exposure / cash-equivalent VM requirement
+                from dealer perspective
+
+    q_CSA     = CSA contractual valuation percentage = 1 - h_CSA
+
+    B_t       = market value of bond collateral delivered
+
+For an uncapped collateral process:
+
+    B_t = V_t / q_CSA
+
+For the SPIRE / finite-pool case, subject to confirmation of transaction
+documentation:
+
+    B_t = min(V_t / q_CSA, B_t^cap)
+
+Use the same caveat as the FVA paper:
+
+The CSA / transaction documentation determines how much collateral is
+actually delivered. The CVA model does not independently determine what the
+counterparty “should” post.
+
+If the collateral pool cap binds, do NOT automatically assume cash
+substitution, additional collateral, regulatory breach, or termination.
+Those are contractual/legal questions.
+
+Import B_t as the collateral process into the CVA model.
+
+============================================================
+4. EXPLICITLY SEPARATE THE TWO HAIRCUT QUESTIONS
+============================================================
+
+This distinction is central to the paper.
+
+The FVA paper contains:
+
+    q_CSA
+        contractual valuation percentage determining bond quantity B_t
+
+and
+
+    q_repo
+        repo advance rate determining cash funding capacity
+
+        F_t = rho q_repo B_t.
+
+For CVA, do NOT automatically use q_repo.
+
+Repo haircut answers:
+
+    “How much cash can the dealer raise against the bond in the repo market?”
+
+CVA instead asks:
+
+    “What economic value of the collateral is available to reduce the
+     dealer’s loss following counterparty default?”
+
+These are different questions.
+
+Introduce a separate object if required, for example
+
+    L_tau
+
+or
+
+    C_tau^real
+
+for the collateral value actually realizable in the default/close-out process.
+
+If a reduced-form haircut is eventually used, give it a distinct name such as
+
+    q_liq = 1 - h_liq
+
+only after explaining exactly what risk it represents.
+
+Do not identify
+
+    q_liq = q_repo
+or
+    q_liq = q_reg
+or
+    q_liq = q_CSA
+
+without an explicit methodological justification.
+
+============================================================
+5. DEFAULT AND CLOSE-OUT TIMELINE
+============================================================
+
+This should be one of the central sections.
+
+Lay out the event sequence naturally:
+
+    last successful margin exchange
+        ->
+    counterparty default tau
+        ->
+    margin period of risk / close-out period
+        ->
+    derivative close-out value determined
+        ->
+    collateral available/enforceable
+        ->
+    collateral liquidated or otherwise realized
+        ->
+    residual unsecured claim / surplus collateral returned
+
+Introduce notation only as needed, for example:
+
+    tau       = counterparty default time
+    delta     = effective MPOR / liquidation horizon
+    V_tau+δ   = derivative close-out exposure
+    B_tau     = collateral held when margining stops
+    P^B_tau+δ = collateral value at realization
+    C^real_tau = realizable collateral value
+
+The exact timing convention should follow the firm’s existing CVA methodology
+where available.
+
+The paper must explicitly investigate whether collateral should be frozen at
+the last margin call before default while the derivative and collateral values
+continue evolving over MPOR.
+
+Do not simply evaluate
+
+    V_tau - q B_tau
+
+at the same instant unless that approximation is justified.
+
+============================================================
+6. THE CORE CVA EXPOSURE EQUATION
+============================================================
+
+Build the loss equation from the close-out mechanics.
+
+A natural generic structure to investigate is
+
+    E_tau^net
+        = (CloseOut_tau - C_tau^real)^+
+
+and
+
+    Loss_tau
+        = LGD × E_tau^net,
+
+subject to the precise legal close-out and recovery convention.
+
+If the model explicitly simulates the collateral value over MPOR, the
+realizable collateral may look schematically like
+
+    C_tau^real
+        = enforceable value of B_tau at tau + delta
+          net of liquidation effects/costs.
+
+If a reduced-form liquidation haircut is used instead:
+
+    C_tau^real ≈ q_liq B_tau
+
+or the appropriate time-shifted equivalent.
+
+Do NOT assume this formula is final without checking the existing firm CVA
+framework.
+
+The paper should identify exactly where non-cash collateral enters the
+existing CVA exposure calculation.
+
+============================================================
+7. MPOR IS POTENTIALLY THE KEY NON-CASH COLLATERAL EFFECT
+============================================================
+
+Explain why a bond worth B at the last successful margin call is not
+necessarily worth B when it is needed after default.
+
+During MPOR:
+
+1. derivative MTM can move;
+2. bond collateral price can move;
+3. FX can move if collateral and exposure currencies differ;
+4. liquidation may take time;
+5. bid/offer and liquidation costs may arise.
+
+Therefore the CVA problem potentially requires the JOINT evolution of
+
+    derivative exposure
+and
+    collateral value.
+
+If both are stochastic, emphasize:
+
+    E[(V - C)^+] != (E[V] - E[C])^+
+
+in general.
+
+Therefore expected exposure profiles and expected collateral profiles should
+not normally be subtracted independently before applying the positive part.
+
+Pathwise evaluation may be required.
+
+============================================================
+8. WRONG-WAY / RIGHT-WAY RISK
+============================================================
+
+Treat this explicitly.
+
+There are potentially two distinct dependence structures:
+
+A. exposure-collateral dependence
+
+    correlation between derivative MTM and bond collateral value;
+
+B. default-market dependence
+
+    dependence between counterparty default and either derivative exposure
+    or collateral value.
+
+For example, CVA can be materially worse if counterparty default tends to
+occur precisely when:
+
+    derivative exposure rises
+and/or
+    collateral value falls.
+
+Do not call every correlation “wrong-way risk.”
+
+Use precise terminology:
+
+    exposure/collateral correlation
+
+versus
+
+    default dependence / wrong-way risk.
+
+If the current CVA engine assumes independence, state that clearly as a
+modeling assumption and identify the omitted effect.
+
+============================================================
+9. CSA HAIRCUT: WHAT DOES IT DO FOR CVA?
+============================================================
+
+Analyze carefully the economic role of q_CSA.
+
+Example:
+
+    V = 100
+    q_CSA = 0.90
+    B = 111.11.
+
+At the margining instant:
+
+    q_CSA B = 100,
+
+but the dealer physically holds bonds with current market value 111.11.
+
+Do NOT automatically conclude either:
+
+    “CVA collateral value is 100”
+
+or
+
+    “CVA collateral value is 111.11.”
+
+Explain what the CSA haircut actually accomplishes:
+
+It creates an overcollateralization / valuation buffer intended to protect
+against collateral-value and close-out risks.
+
+The CVA model must determine how that buffer interacts with:
+
+    MPOR,
+    collateral price evolution,
+    close-out exposure,
+    liquidation value,
+    return of excess collateral,
+    recovery.
+
+This is an important conceptual distinction from the FVA model.
+
+============================================================
+10. RECOVERY AND COLLATERAL MUST NOT BE DOUBLE COUNTED
+============================================================
+
+Explicitly derive the ordering.
+
+The paper should establish whether the firm's convention is conceptually:
+
+    first collateralize/net the exposure,
+    then apply recovery/LGD to the remaining unsecured claim,
+
+e.g.
+
+    Loss_tau
+        = (1 - R)
+          (CloseOut_tau - C_tau^real)^+
+
+or something different.
+
+Do not apply LGD independently to gross exposure and then separately credit
+collateral unless mathematically justified.
+
+Check treatment of:
+
+    collateral surplus,
+    undercollateralization,
+    limited recourse,
+    close-out netting,
+    recovery of residual unsecured claims.
+
+============================================================
+11. REHYPOTHECATION: DO NOT IMPORT THE FVA ROLE BLINDLY
+============================================================
+
+In the FVA paper, rho is central because:
+
+    rho = 0 -> no repo funding capacity.
+
+For CVA, investigate separately whether rehypothecation changes loss-at-default
+economics.
+
+The mere fact that collateral cannot be repoed before default does not
+necessarily mean it provides zero credit protection.
+
+Conversely, if collateral has already been rehypothecated when the
+counterparty defaults, determine how the dealer’s obligation to return
+equivalent collateral and the linked repo obligation affect close-out loss.
+
+Do not assume:
+
+    rho = 0 -> collateral value for CVA = 0.
+
+Funding accessibility and credit-risk mitigation are separate concepts.
+
+This distinction should be highlighted explicitly because it is one of the
+most important differences between the FVA and CVA papers.
+
+============================================================
+12. SPIRE / LIMITED-RECOURSE STRUCTURE
+============================================================
+
+Use the FVA paper’s SPIRE background but ask a different question.
+
+For CVA, the key issue is not merely whether B_t^cap limits VM delivery.
+
+Investigate what the dealer can recover when SPIRE defaults given:
+
+    compartment / series segregation,
+    limited recourse,
+    collateral pool,
+    priority of payments,
+    swap-counterparty ranking,
+    close-out provisions,
+    security interests / title transfer,
+    claims on residual collateral.
+
+If the swap counterparty has direct or senior access to the collateral pool,
+ordinary unsecured-counterparty LGD assumptions may be inappropriate.
+
+Do NOT infer the recovery model from the fact that SPIRE is an SPV.
+
+Flag this for legal / credit methodology confirmation.
+
+============================================================
+13. REGULATORY HAIRCUTS
+============================================================
+
+Keep this OUT of the core CVA formula unless methodology requires it.
+
+As established in the FVA paper, q_reg answers a regulatory collateral
+recognition / adequacy question.
+
+It is not automatically:
+
+    actual liquidation value,
+    repo advance rate,
+    CSA valuation percentage,
+    CVA loss haircut.
+
+If regulatory CVA / counterparty-credit-risk capital uses prescribed
+collateral haircuts, explain that separately in a regulatory appendix.
+
+Do not allow regulatory capital methodology to leak silently into
+pricing/accounting CVA.
+
+============================================================
+14. WORKED EXAMPLES
+============================================================
+
+After deriving the framework, include a small number of intuitive examples.
+
+At minimum:
+
+Case 1 — perfect collateral / no MPOR movement
+    V = 100
+    q_CSA = 0.90
+    B = 111.11
+    show what happens if collateral remains sufficient at close-out.
+
+Case 2 — collateral price falls during MPOR
+    demonstrate residual exposure despite apparently sufficient collateral
+    before default.
+
+Case 3 — derivative exposure rises during MPOR
+    demonstrate gap exposure.
+
+Case 4 — pool cap binds
+    B^cap < V/q_CSA
+    demonstrate pre-existing undercollateralization plus MPOR risk.
+
+Optionally:
+
+Case 5 — favorable collateral movement / collateral surplus
+    explain why CVA cannot become a windfall simply because collateral value
+    exceeds the close-out claim; excess collateral generally creates a return
+    obligation subject to legal terms.
+
+Keep examples economic and transparent rather than numerically elaborate.
+
+============================================================
+15. RELATIONSHIP TO THE FVA / ColVA PAPER
+============================================================
+
+Include a short comparison section or summary table.
+
+The central contrast should be something like:
+
+    Question             FVA / ColVA                CVA
+    ---------------------------------------------------------------
+    Main object          funding cost               default loss
+    Contract input       B_t                        B_t
+    Market conversion    repo funding capacity      realizable collateral
+    Key haircut/rate     q_repo, r_repo             liquidation/default
+                                                     treatment
+    Rehypothecation      determines funding access  separate legal/default
+                                                     question
+    Main horizon         ongoing funding            default + MPOR
+    Key dependence       V_t vs funding capacity    exposure vs collateral
+                                                     vs default
+    Output               funding adjustment         expected credit loss
+
+The papers should share transaction mechanics but NOT force identical
+valuation state variables.
+
+============================================================
+16. IMPLEMENTATION / SIMULATION
+============================================================
+
+Only after the economics are established, describe implementation.
+
+Identify what can be reused from the existing CVA simulation framework:
+
+    derivative exposure paths,
+    default probabilities/intensities,
+    discount factors,
+    recovery assumptions,
+    MPOR framework,
+    netting sets.
+
+Then identify what non-cash collateral adds:
+
+    collateral quantity process B_t,
+    bond price evolution,
+    CSA haircut/top-up process,
+    pool cap,
+    collateral/exposure correlation,
+    FX where applicable,
+    liquidation treatment.
+
+If joint pathwise simulation is required, state that explicitly.
+
+Do not prescribe a new stochastic model unless necessary; distinguish
+methodology requirements from implementation choices.
+
+============================================================
+17. OPEN QUESTIONS / REQUIRED CONFIRMATIONS
+============================================================
+
+End the paper with a prominent list of unresolved questions rather than
+burying assumptions in the derivation.
+
+At minimum investigate/confirm:
+
+1. What exact exposure/close-out quantity does the existing CVA engine use at
+   default and over MPOR?
+
+2. How does the existing CVA methodology treat cash VM?
+
+3. For non-cash VM, what collateral value is recognized for pricing CVA:
+   current MV, stressed/liquidation MV, supervisory haircut value, or another
+   quantity?
+
+4. Is there an explicit liquidation haircut? If yes, how is it calibrated and
+   is it distinct from q_CSA, q_repo and q_reg?
+
+5. How is MPOR implemented, and at what point is the collateral quantity
+   frozen?
+
+6. Is collateral price simulated pathwise during MPOR?
+
+7. Is correlation between derivative exposure and collateral value modeled?
+
+8. Is default dependence / wrong-way risk modeled?
+
+9. How is recovery applied after collateral/netting?
+
+10. What happens contractually when the SPIRE collateral pool cap binds?
+
+11. What rights does the swap counterparty have against the SPIRE collateral
+    pool upon default, and where does it rank in the waterfall?
+
+12. Does limited recourse alter the appropriate LGD/recovery treatment?
+
+13. Does rehypothecation affect the CVA close-out mechanics, or only FVA?
+
+14. Does the existing methodology already contain a non-cash collateral CVA
+    treatment that should be reused rather than reconstructed?
+
+15. What exactly was HC(IM)=96% in the original methodology, and does it have
+    any legitimate role in CVA? Do not assume that it does.
+
+============================================================
+18. WRITING / STRUCTURAL REQUIREMENTS
+============================================================
+
+Keep the main paper short and logically ordered.
+
+Recommended structure:
+
+    Scope
+
+    1. Setup and notation
+       1.1 CVA loss convention
+       1.2 Contractual collateral process
+       1.3 The distinct collateral valuation concepts
+
+    2. Default and close-out mechanics
+       2.1 Default timeline and MPOR
+       2.2 Realizable collateral value
+       2.3 Residual exposure and recovery
+
+    3. CVA methodology
+       3.1 Pathwise net exposure
+       3.2 CVA equation
+       3.3 Non-cash collateral effects
+       3.4 Correlation and wrong-way risk
+
+    4. Worked examples
+
+    5. Relationship to FVA / ColVA
+
+    6. Summary
+
+    Appendix A — Modeling and implementation choices
+    Appendix B — SPIRE contractual / legal considerations
+    Appendix C — Regulatory treatment
+    Appendix D — Open questions and required confirmations
+    Appendix E — References
+
+Follow these writing principles:
+
+- Derive economics before notation proliferation.
+- Every variable must answer a concrete economic question.
+- Do not create multiple “channels” unless genuinely necessary.
+- Prefer a small number of state variables and identities.
+- Clearly distinguish FACT, ASSUMPTION, and OPEN QUESTION.
+- Do not present transaction-specific legal conclusions as established facts
+  unless supported by documentation.
+- Do not state that SPIRE receives an exemption merely because it is an SPV.
+- Do not reuse FVA concepts simply because they already exist.
+- Keep regulatory material out of the main pricing derivation unless it
+  actually changes the economic CVA calculation.
+- Use the existing FVA paper as a source for collateral mechanics and
+  terminology, but treat the CVA derivation as a separate first-principles
+  exercise.
+
+The conceptual chain of the new paper should ultimately be visually obvious:
+
+    CSA / transaction terms
+             |
+             v
+       collateral B_t
+             |
+             v
+    counterparty default
+             |
+             v
+      MPOR / close-out
+        /          \
+ derivative       collateral
+ exposure         value
+        \          /
+             v
+      realizable net exposure
+             |
+             v
+       recovery / LGD
+             |
+             v
+             CVA
+
+The reader should finish the paper understanding not merely the formula, but
+WHY q_CSA, q_repo, q_reg, and any CVA liquidation haircut answer four
+different questions and therefore must not be conflated.
