@@ -1,0 +1,59 @@
+Please update the white paper so that Channel 3 is written generically using \(r_{\rm alt,t}\) rather than hard-coding \(r_{\rm CoF,t}\).
+
+Define
+
+$$ r_{\rm alt,t} $$
+
+as the opportunity-cost / alternative-use rate applicable to incremental repo cash that is not required to finance the collateral-supported portion of this trade. The economic interpretation is:
+
+\(r_{\rm base,t}\): benchmark already embedded in the base valuation of this trade;
+\(r_{\rm CoF,t}\): dealer's marginal unsecured funding cost;
+\(r_{\rm alt,t}\): value of the best alternative use of incremental repo cash.
+
+The base-case assumption in this note remains
+
+$$ r_{\rm alt,t}=r_{\rm CoF,t}, $$
+
+corresponding to a dealer that is a marginal unsecured borrower and can use additional repo cash to displace unsecured funding elsewhere. However, keep \(r_{\rm alt}\) explicit in the general equations so the assumption is transparent rather than embedded in the Channel 3 formula.
+
+Therefore write Channel 3 as
+
+$$ \mathrm{ColVA}_3 = \int_0^T E_0\!\left[ DF_t^{\rm base}\, X_t (r_{\rm repo,t}-r_{\rm alt,t}) \right]dt, $$
+
+subject to any existing optional-monetization convention in the note.
+
+Also revise Proposition 2 carefully. Do not claim that the existing \(q_{\rm reg}\)-free reduced form holds for arbitrary \(r_{\rm alt}\).
+
+Starting from
+
+$$ C_t=\min(V_t,q_{\rm reg}B_t),\qquad F_t=\rho q_{\rm repo}B_t, $$ $$ A_t=\min(C_t,F_t),\quad G_t=(C_t-F_t)^+,\quad U_t=V_t-C_t,\quad X_t=(F_t-C_t)^+, $$
+
+and
+
+$$ A_t(r_{\rm repo}-r_{\rm base}) +(U_t+G_t)(r_{\rm CoF}-r_{\rm base}) +X_t(r_{\rm repo}-r_{\rm alt}), $$
+
+define the net-funding quantities
+
+$$ S_t=\min(V_t,F_t),\qquad U_t^f=(V_t-F_t)^+,\qquad X_t^f=(F_t-V_t)^+. $$
+
+For arbitrary \(r_{\rm alt}\), show that the exact reduced representation is
+
+$$ \boxed{ S_t(r_{\rm repo}-r_{\rm base}) +U_t^f(r_{\rm CoF}-r_{\rm base}) +X_t^f(r_{\rm repo}-r_{\rm alt}) +(S_t-C_t)^+(r_{\rm CoF}-r_{\rm alt}) } $$
+
+(inside the usual expectation, discount factor and time integral).
+
+Explain the last term economically. When \(F_t>C_t\), some repo capacity classified as Channel 3 may still be used to finance this trade's own \(U_t\) rather than being genuinely external excess cash. If \(r_{\rm alt}\neq r_{\rm CoF}\), treating that amount at \(r_{\rm alt}\) rather than \(r_{\rm CoF}\) creates the correction
+
+$$ (S_t-C_t)^+(r_{\rm CoF}-r_{\rm alt}). $$
+
+Under the standing base-case assumption
+
+$$ r_{\rm alt}=r_{\rm CoF}, $$
+
+this correction vanishes and Proposition 2 collapses to the existing clean form
+
+$$ \boxed{ S_t(r_{\rm repo}-r_{\rm base}) +U_t^f(r_{\rm CoF}-r_{\rm base}) +X_t^f(r_{\rm repo}-r_{\rm CoF}) }. $$
+
+This is the case in which \(q_{\rm reg}\) disappears from the total, conditional on the collateral process \(B_t\). For arbitrary \(r_{\rm alt}\), \(C_t=\min(V_t,q_{\rm reg}B_t)\) remains in the correction term, so total ColVA can depend explicitly on \(q_{\rm reg}\).
+
+Please update the surrounding explanation and sensitivity table accordingly. Make clear that \(r_{\rm alt}=r_{\rm CoF}\) is the standing/base-case economic assumption of the paper, not a mathematical necessity, and that the simple Proposition 2 is the specialization of the more general expression to that assumption.
