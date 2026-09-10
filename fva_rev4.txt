@@ -1,59 +1,264 @@
-Please update the white paper so that Channel 3 is written generically using \(r_{\rm alt,t}\) rather than hard-coding \(r_{\rm CoF,t}\).
+Please revise the white paper using the following consolidated instructions. The objective is to improve the economic hierarchy and make the main text concise and production-oriented, while moving proofs and detailed modelling discussions to a new appendix.
+
+Do not redesign the overall three-channel framework. Preserve the existing notation and sign convention unless explicitly changed below.
+
+1. Collateral process \(B_t\)
+
+Early in the paper, preferably in Section 1 after the notation is introduced, define the bond collateral process explicitly as
+
+$$ \boxed{ B_t=\min\left(\frac{V_t}{q_{\rm CSA}},B_t^{\rm cap}\right) } $$
+
+where \(B_t^{\rm cap}\) is the maximum market value of eligible bond collateral available for posting from the relevant ring-fenced pool.
+
+Explain briefly that this is one collateral process with two regimes:
+
+$$ B_t= \begin{cases} V_t/q_{\rm CSA}, & V_t/q_{\rm CSA}\le B_t^{\rm cap},\\ B_t^{\rm cap}, & V_t/q_{\rm CSA}>B_t^{\rm cap}. \end{cases} $$
+
+Before the cap binds, collateral follows the contractual CSA call; after the cap binds, available inventory constrains further posting.
+
+Do not state that Proposition 2 requires \(B_t\) to be exogenous. The reduced-form identity holds for a general collateral process \(B_t\). What matters for \(q_{\rm reg}\)-invariance is whether \(q_{\rm reg}\) itself affects the process determining \(B_t\).
+
+Under the stated process \(B_t=\min(V_t/q_{\rm CSA},B_t^{\rm cap})\), \(B_t\) depends on \(V_t,q_{\rm CSA}\) and the pool cap, but not directly on \(q_{\rm reg}\), provided the CSA-prescribed posting satisfies the applicable regulatory requirement. If regulatory requirements themselves force additional collateral posting, then \(q_{\rm reg}\) can affect total ColVA indirectly through
+
+$$ q_{\rm reg}\rightarrow B_t\rightarrow F_t. $$
+
+Keep this caveat concise in the main text; detailed discussion can go in the appendix.
+
+2. Move Proposition 1 out of the main text
+
+In §3.2, after defining
+
+$$ A_t=\min(C_t,F_t),\qquad G_t=(C_t-F_t)^+,\qquad X_t=(F_t-C_t)^+, $$
+
+state directly, without a formal proposition/proof, the useful decomposition identities:
+
+$$ \boxed{ A_t+G_t+U_t=V_t, \qquad A_t+X_t=F_t } $$
+
+and hence
+
+$$ \boxed{X_t=F_t-A_t}. $$
+
+Also state that at most one of \(G_t\) and \(X_t\) is non-zero.
+
+Explain in one sentence that these identities fully allocate both the exposure \(V_t\) and available repo funding capacity \(F_t\).
+
+Move the existing formal Proposition 1 and its proof to a new appendix. Add a short main-text cross-reference such as “A formal proof is given in Appendix A.”
+
+3. Generalize Channel 3 using \(r_{\rm alt}\)
+
+Revise §4.3 so Channel 3 is expressed generically using
+
+$$ r_{\rm alt,t}, $$
+
+rather than hard-coding \(r_{\rm CoF,t}\).
+
+The key economic distinction should be clear:
+
+Channels 1 and 2 concern funding of this trade's exposure, so their natural benchmark is \(r_{\rm base}\), the funding benchmark already embedded in base PV.
+Channel 3 arises from incremental repo capacity beyond the collateral-supported portion. This introduces an opportunity-use question: what would the dealer otherwise do with that incremental cash?
+
+Therefore write
+
+$$ \boxed{ \mathrm{ColVA}_3= \int_0^T E_0\!\left[ DF_t^{\rm base} X_t(r_{\rm repo,t}-r_{\rm alt,t}) \right]dt } $$
+
+subject to the optional-monetization treatment below.
+
+Define \(r_{\rm alt}\) as the economic value of the best alternative use of incremental repo cash.
+
+Do not mechanically identify \(r_{\rm alt}\) with \(r_{\rm base}\). Conceptually:
+
+$$ r_{\rm base} =\text{benchmark embedded in this trade's base valuation}, $$
+
+whereas
+
+$$ r_{\rm alt} =\text{marginal economic value of incremental cash}. $$
+
+They could coincide under a particular FTP framework, but there is no general reason they must.
+
+4. Explain the systematic trade-level attribution issue concisely in §4.3
+
+The methodology in this white paper is intended to be applied systematically across trades. Therefore, do not automatically give every individual trade credit for reducing unsecured funding elsewhere in the portfolio.
+
+The appropriate \(r_{\rm alt}\) should be determined consistently from the relevant desk/Treasury funding state and FTP framework.
+
+Distinguish two principal cases.
+
+Marginally unsecured-funded desk
+
+If incremental repo cash genuinely displaces marginal unsecured borrowing:
+
+$$ \boxed{r_{\rm alt}=r_{\rm CoF}}. $$
+
+The Channel 3 benefit then represents avoided unsecured funding elsewhere.
+
+Fully funded / cash-surplus desk
+
+If the desk has no marginal unsecured funding need, excess cash should not receive an \(r_{\rm CoF}\) benefit. Its alternative value is the return available from parking/investing cash:
+
+$$ r_{\rm alt}=r_{\rm park}. $$
+
+If \(r_{\rm cash}\) denotes the available cash/near-risk-free investment return, recognize that repoing the collateral merely to create excess cash is optional. The desk should not undertake the incremental repo if
+
+$$ r_{\rm repo}\ge r_{\rm cash}. $$
+
+Therefore the Channel 3 contribution for a fully funded desk can be represented as
+
+$$ X_t\min(0,r_{\rm repo}-r_{\rm cash}), $$
+
+or equivalently using the effective benchmark
+
+$$ \boxed{ r_{\rm park}=\max(r_{\rm cash},r_{\rm repo}) }. $$
+
+Explain briefly that this max is an effective monetization benchmark, not a claim that cash can literally be invested at the repo rate. When repoing is uneconomic, the optimal action is simply not to repo the excess collateral.
+
+A compact production rule may therefore be stated schematically as
+
+$$ r_{\rm alt}= \begin{cases} r_{\rm CoF}, & \text{if incremental cash displaces marginal unsecured funding},\\[3pt] r_{\rm park}, & \text{if the desk is otherwise fully funded}. \end{cases} $$
+
+Keep the main-text discussion concise. Detailed FTP, allocation and alternative-rate discussion belongs in the appendix.
+
+5. Move the standing Channel 3 assumption from §4.4 into §4.3
+
+Incorporate the current standing/base-case assumption directly into the above §4.3 discussion.
+
+If the white paper's base case remains that the dealer is a marginal unsecured borrower, state explicitly:
+
+$$ \boxed{r_{\rm alt}=r_{\rm CoF}} $$
+
+for the base case.
+
+Make clear that this is an economic/FTP assumption, not a mathematical requirement.
+
+This allows §4.4 to remain clean. §4.4 should essentially state only
+
+$$ \boxed{ \mathrm{ColVA/FVA} = \mathrm{ColVA}_1+ \mathrm{ColVA}_2+ \mathrm{ColVA}_3 } $$
+
+together with the existing sign convention and any essential implementation statement.
+
+6. Revise the reduced-form proposition
+
+Retain the reduced-form result as an important economic result, not merely an algebraic check.
 
 Define
 
-$$ r_{\rm alt,t} $$
+$$ S_t=\min(V_t,F_t), \qquad U_t^f=(V_t-F_t)^+, \qquad X_t^f=(F_t-V_t)^+. $$
 
-as the opportunity-cost / alternative-use rate applicable to incremental repo cash that is not required to finance the collateral-supported portion of this trade. The economic interpretation is:
+Emphasize their direct funding interpretation:
 
-\(r_{\rm base,t}\): benchmark already embedded in the base valuation of this trade;
-\(r_{\rm CoF,t}\): dealer's marginal unsecured funding cost;
-\(r_{\rm alt,t}\): value of the best alternative use of incremental repo cash.
+\(S_t\): amount of this trade's funding requirement met through repo;
+\(U_t^f\): genuine residual funding shortfall;
+\(X_t^f\): genuine repo cash in excess of this trade's total funding requirement.
 
-The base-case assumption in this note remains
-
-$$ r_{\rm alt,t}=r_{\rm CoF,t}, $$
-
-corresponding to a dealer that is a marginal unsecured borrower and can use additional repo cash to displace unsecured funding elsewhere. However, keep \(r_{\rm alt}\) explicit in the general equations so the assumption is transparent rather than embedded in the Channel 3 formula.
-
-Therefore write Channel 3 as
-
-$$ \mathrm{ColVA}_3 = \int_0^T E_0\!\left[ DF_t^{\rm base}\, X_t (r_{\rm repo,t}-r_{\rm alt,t}) \right]dt, $$
-
-subject to any existing optional-monetization convention in the note.
-
-Also revise Proposition 2 carefully. Do not claim that the existing \(q_{\rm reg}\)-free reduced form holds for arbitrary \(r_{\rm alt}\).
-
-Starting from
-
-$$ C_t=\min(V_t,q_{\rm reg}B_t),\qquad F_t=\rho q_{\rm repo}B_t, $$ $$ A_t=\min(C_t,F_t),\quad G_t=(C_t-F_t)^+,\quad U_t=V_t-C_t,\quad X_t=(F_t-C_t)^+, $$
-
-and
-
-$$ A_t(r_{\rm repo}-r_{\rm base}) +(U_t+G_t)(r_{\rm CoF}-r_{\rm base}) +X_t(r_{\rm repo}-r_{\rm alt}), $$
-
-define the net-funding quantities
-
-$$ S_t=\min(V_t,F_t),\qquad U_t^f=(V_t-F_t)^+,\qquad X_t^f=(F_t-V_t)^+. $$
-
-For arbitrary \(r_{\rm alt}\), show that the exact reduced representation is
-
-$$ \boxed{ S_t(r_{\rm repo}-r_{\rm base}) +U_t^f(r_{\rm CoF}-r_{\rm base}) +X_t^f(r_{\rm repo}-r_{\rm alt}) +(S_t-C_t)^+(r_{\rm CoF}-r_{\rm alt}) } $$
-
-(inside the usual expectation, discount factor and time integral).
-
-Explain the last term economically. When \(F_t>C_t\), some repo capacity classified as Channel 3 may still be used to finance this trade's own \(U_t\) rather than being genuinely external excess cash. If \(r_{\rm alt}\neq r_{\rm CoF}\), treating that amount at \(r_{\rm alt}\) rather than \(r_{\rm CoF}\) creates the correction
-
-$$ (S_t-C_t)^+(r_{\rm CoF}-r_{\rm alt}). $$
-
-Under the standing base-case assumption
+Under the base-case assumption
 
 $$ r_{\rm alt}=r_{\rm CoF}, $$
 
-this correction vanishes and Proposition 2 collapses to the existing clean form
+the three-channel formulation reduces exactly to
 
-$$ \boxed{ S_t(r_{\rm repo}-r_{\rm base}) +U_t^f(r_{\rm CoF}-r_{\rm base}) +X_t^f(r_{\rm repo}-r_{\rm CoF}) }. $$
+$$ \boxed{ S_t(r_{\rm repo}-r_{\rm base}) + U_t^f(r_{\rm CoF}-r_{\rm base}) + X_t^f(r_{\rm repo}-r_{\rm CoF}) }. $$
 
-This is the case in which \(q_{\rm reg}\) disappears from the total, conditional on the collateral process \(B_t\). For arbitrary \(r_{\rm alt}\), \(C_t=\min(V_t,q_{\rm reg}B_t)\) remains in the correction term, so total ColVA can depend explicitly on \(q_{\rm reg}\).
+This should be presented as an exact equivalent representation under the stated assumption, not merely a validation check.
 
-Please update the surrounding explanation and sensitivity table accordingly. Make clear that \(r_{\rm alt}=r_{\rm CoF}\) is the standing/base-case economic assumption of the paper, not a mathematical necessity, and that the simple Proposition 2 is the specialization of the more general expression to that assumption.
+Its economic interpretation should be concise:
+
+$$ F_t<V_t \Rightarrow \text{the residual shortfall is funded at }r_{\rm CoF}; $$ $$ F_t>V_t \Rightarrow \text{genuine excess repo cash is valued against its alternative use}. $$
+
+Under \(r_{\rm alt}=r_{\rm CoF}\), the latter is marginal unsecured funding displacement.
+
+7. General \(r_{\rm alt}\) and the limits of the simple reduced form
+
+Do not imply that the simple \(q_{\rm reg}\)-free reduced form is structural for arbitrary \(r_{\rm alt}\).
+
+Starting from the full three-channel expression
+
+$$ A_t(r_{\rm repo}-r_{\rm base}) +(U_t+G_t)(r_{\rm CoF}-r_{\rm base}) +X_t(r_{\rm repo}-r_{\rm alt}), $$
+
+show, either briefly in the reduced-form section or with derivation in the appendix, that for general \(r_{\rm alt}\) the exact representation contains the additional correction
+
+$$ \boxed{ S_t(r_{\rm repo}-r_{\rm base}) +U_t^f(r_{\rm CoF}-r_{\rm base}) +X_t^f(r_{\rm repo}-r_{\rm alt}) +(S_t-C_t)^+(r_{\rm CoF}-r_{\rm alt}) }. $$
+
+The final term reflects the fact that some \(X_t=(F_t-C_t)^+\) in the three-channel attribution may still be funding this trade's own \(U_t\); it is not yet genuinely excess to the trade. Genuine external excess is
+
+$$ X_t^f=(F_t-V_t)^+. $$
+
+When
+
+$$ r_{\rm alt}=r_{\rm CoF}, $$
+
+the correction vanishes and the simple reduced form is recovered.
+
+This is also why \(q_{\rm reg}\) disappears from the total under that base-case assumption, provided \(q_{\rm reg}\) does not independently alter \(B_t\). For general \(r_{\rm alt}\), \(C_t=\min(V_t,q_{\rm reg}B_t)\) remains relevant and the total may depend explicitly on \(q_{\rm reg}\).
+
+Keep the main-text explanation short; place the full algebraic proof in the appendix.
+
+8. Revise the existing “What this does and does not mean” discussion
+
+Preserve the useful economic content but update it consistently with the above.
+
+In particular:
+
+\(q_{\rm reg}\) determines the collateral-recognition split and hence attribution across the three channels; do not describe \(U_t=(V_t-q_{\rm reg}B_t)^+\) as automatically equal to the net unsecured cash funding requirement. The latter is
+
+$$ U_t^f=(V_t-F_t)^+. $$
+
+The \(q_{\rm reg}\)-cancellation in the simple reduced form follows from the base-case economic assumption
+
+$$ r_{\rm alt}=r_{\rm CoF}. $$
+
+The reduced-form identity does not require \(B_t\) to be exogenous. However, if \(q_{\rm reg}\) changes the collateral actually posted, it can affect total ColVA indirectly through
+
+$$ q_{\rm reg}\rightarrow B_t\rightarrow F_t. $$
+
+Where appropriate, mention the example \(q_{\rm CSA}>q_{\rm reg}\) as a situation in which regulatory requirements could potentially constrain the required collateral amount. Do not overstate this without contractual/regulatory support.
+
+Retain the existing \(r_{\rm alt}\) sensitivity table, updated for the generalized framework. Introduce it as illustrating the interaction between \(q_{\rm reg}\) and the treatment of incremental repo capacity — not as illustrating every caveat above.
+
+9. Create a new appendix for proofs and modelling choices
+
+Create:
+
+Appendix A — Mathematical Results and Modelling Choices
+
+Suggested subsections:
+
+A.1 Proof of the collateral/funding decomposition
+
+Move the existing Proposition 1 and proof here, including
+
+$$ A_t+G_t+U_t=V_t,\qquad A_t+X_t=F_t, $$
+
+and the mutual exclusivity of \(G_t\) and \(X_t\).
+
+A.2 Derivation of the reduced-form representation
+
+Give the algebraic derivation of both the general \(r_{\rm alt}\) expression and the \(r_{\rm alt}=r_{\rm CoF}\) specialization.
+
+A.3 Choice of \(r_{\rm alt}\)
+
+Give the more detailed modelling discussion comparing:
+
+$$ r_{\rm alt}=r_{\rm CoF}, \qquad r_{\rm alt}=r_{\rm cash/RFR}, \qquad r_{\rm alt}=r_{\rm base}, $$
+
+including why \(r_{\rm base}\) is generally not the natural Channel 3 benchmark unless supported by a specific FTP interpretation.
+
+Discuss trade-level versus portfolio/Treasury-level attribution and the risk of automatically assigning every trade the benefit of displacing unsecured funding elsewhere.
+
+Include the optional-repo treatment
+
+$$ r_{\rm park}=\max(r_{\rm cash},r_{\rm repo}) $$
+
+and its interpretation.
+
+A.4 Collateral-process and haircut modelling choices
+
+Put detailed discussion here on endogenous/capped \(B_t\), potential \(q_{\rm reg}\rightarrow B_t\) effects, CSA versus regulatory haircut interactions, and other useful modelling caveats that are important for governance but would interrupt the main derivation.
+
+10. Overall editorial principle
+
+Keep the main body focused on the economic mechanics needed to understand and implement the methodology. Move mathematical proofs, alternative assumptions, sensitivities and model-governance discussion to Appendix A.
+
+The main narrative should make the hierarchy clear:
+
+$$ \boxed{ \text{CSA/pool mechanics determine }B_t \rightarrow \text{repo determines }F_t \rightarrow \text{Channels 1/2 fund this trade} \rightarrow \text{Channel 3 introduces an alternative-use decision} } $$
+
+and the reduced form should expose the underlying cash-funding economics rather than being described merely as a check.
