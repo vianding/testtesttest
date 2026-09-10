@@ -1,0 +1,62 @@
+Update the existing Appendix section “Regulatory and Contractual Basis” rather than creating a new standalone regulatory-haircut appendix.
+
+Add a concise subsection covering the regulatory basis for haircuts on non-cash VM collateral across Canada, UK, EU and U.S. The purpose is to substantiate the paper's use of \(q_{\rm reg}\) and clearly distinguish it from \(q_{\rm CSA}\) and \(q_{\rm repo}\).
+
+The subsection should answer:
+
+Do applicable margin regulations prescribe or provide a methodology/minimum haircut for eligible non-cash collateral used as VM?
+
+The answer is yes, subject to jurisdiction, entity/counterparty scope and collateral eligibility.
+
+Use primary regulatory sources only, and quote the operative language briefly and exactly.
+
+Canada — OSFI E-22, §4.2 Haircuts. Cite the provision stating:
+
+“Any margin exchanged must be haircutted to account for potential changes in the value of the collateral.”
+
+Also cite the provision stating:
+
+“Otherwise, standard supervisory haircuts from the table below must be used.”
+
+Explain that the standardized schedule gives a 4% haircut for qualifying AAA–AA− sovereign debt with residual maturity \(>5\) years, while an eligible model-based methodology may apply where permitted.
+
+EU — Commission Delegated Regulation (EU) 2016/2251, Annex II. Cite the adjusted-collateral-value methodology
+
+$$ C_{\rm value}=C(1-H_C-H_{FX}) $$
+
+and the operative requirement that counterparties apply “at least the haircuts provided” in the relevant tables. Note the applicable 4% standardized haircut for the corresponding high-quality sovereign/government debt category with residual maturity \(>5\) years.
+
+UK — UK EMIR margin RTS / retained and amended version of Delegated Regulation 2016/2251, Annex II. Cite the equivalent UK requirement that counterparties apply “at least the haircuts provided” in the tables, together with the corresponding 4% \(>5\)-year high-quality sovereign/government debt haircut. Use the current FCA/PRA/UK legislation source rather than treating the EU text itself as evidence of the current UK rule.
+
+U.S. — explain the scope distinction explicitly. Cite the CFTC and/or U.S. prudential-regulator margin rules showing that, where non-cash collateral is eligible for VM, its value is subject to prescribed regulatory haircuts/discounts. Include the corresponding 4% standardized haircut for qualifying government debt with residual maturity \(>5\) years. Also state that U.S. rules can require cash VM for certain counterparty combinations, so the non-cash haircut schedule should not be presented as universally applicable to every U.S. VM relationship.
+
+Add a compact comparison table with columns such as:
+
+Jurisdiction	Non-cash VM haircut framework	\(>5y\) qualifying sovereign/government example	Primary source
+Canada	Standard supervisory haircut or permitted model methodology	4%	OSFI E-22 §4.2
+EU	Minimum standardized haircut schedule	4%	Delegated Regulation 2016/2251 Annex II
+UK	Minimum standardized haircut schedule	4%	UK EMIR Margin RTS Annex II
+U.S.	Prescribed haircut where non-cash VM is eligible	4%	CFTC / Prudential Margin Rules
+
+Do not imply that every sovereign bond receives 4%. The applicable haircut depends on issuer/category, credit quality, residual maturity, currency treatment and the precise regulatory regime.
+
+Then connect the regulatory evidence directly to the notation used in the paper:
+
+$$ H_{\rm reg}=4\% \quad\Longrightarrow\quad q_{\rm reg}=1-H_{\rm reg}=0.96 $$
+
+for the paper's illustrative qualifying \(>5\)-year high-quality sovereign collateral.
+
+Make the conceptual distinction explicit:
+
+$$ \boxed{ q_{\rm CSA}\neq q_{\rm reg}\neq q_{\rm repo} } $$
+\(q_{\rm CSA}\): contractual valuation percentage determining the collateral call under the CSA;
+\(q_{\rm reg}\): regulatory recognition of eligible collateral after the applicable prudential haircut;
+\(q_{\rm repo}\): market funding/advance rate obtainable by repoing the collateral.
+
+The regulatory evidence supports \(q_{\rm reg}\); it does not imply anything about the contractual CSA haircut or the repo-market haircut.
+
+Preserve the existing contractual discussion in the appendix, including the legal basis for collateral transfer and rehypothecation/reuse. Integrate this new material so the appendix tells one coherent story:
+
+$$ \text{CSA determines what is posted} \rightarrow \text{regulation determines recognized margin value} \rightarrow \text{reuse rights determine whether it can be monetized} \rightarrow \text{repo market determines cash proceeds}. $$
+
+Keep this subsection concise. The purpose is documentary support for assumptions used in the model, not a comprehensive survey of global margin regulation. Put exact regulatory citations/links in the existing reference format used by the appendix.
