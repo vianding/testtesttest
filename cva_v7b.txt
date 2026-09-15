@@ -1,0 +1,613 @@
+Please perform a SECOND-PASS SIMPLIFICATION REVIEW of the latest revised
+“Pricing CVA for Non-Cash VM / Sovereign Bond Collateral” note.
+
+You may already have implemented the previous restructuring instructions.
+Do not restart the document or mechanically undo those changes.
+
+The purpose of this pass is different:
+
+    We have done substantial analysis to establish the correct economics.
+    Now ask whether too much of that analytical journey has survived as
+    first-class methodology.
+
+The final methodology should be as simple as possible WITHOUT losing any
+economically material distinction.
+
+A good final result should make a technically sophisticated reader think:
+
+    “The unusual economics required careful analysis, but the resulting
+     CVA model is actually quite compact.”
+
+======================================================================
+1. USE THREE EQUATIONS AS THE CONCEPTUAL BACKBONE
+======================================================================
+
+Test the entire main document against the following minimal architecture.
+
+First, pathwise CVA:
+
+    CVA_0
+      =
+    LGD_SPV sum_i DF(0,t_i) Delta S_i
+        E[(V_ti^uw - B_ti^uw)^+].
+
+Second, collateral quantity immediately before the event:
+
+    N_{t-}^post
+      =
+    min(
+        V_{t-}/(q_CSA P_{t-}),
+        N^pool
+    ),
+
+subject to the exact contractual CSA mechanics.
+
+Third, unwind-state collateral value:
+
+    B_t^uw
+      =
+    R_fn(
+        N_{t-}^post,
+        P_{t-},
+        bond terms,
+        default/restructuring state
+    ),
+
+with the proposed reduced-form first implementation:
+
+    B_t^uw
+      ≈
+    R_eff N_{t-}^post.
+
+Everything else in the methodology should have a clear purpose in explaining,
+calibrating, implementing, validating or qualifying one of these equations.
+
+If a section, symbol, stage or distinction does not materially help with one
+of these objects, question whether it belongs in the main body.
+
+======================================================================
+2. DO NOT CONFUSE DEPTH OF RESEARCH WITH COMPLEXITY OF FINAL MODEL
+======================================================================
+
+A large amount of analysis was necessary to determine:
+
+- why performing bond MTM cannot simply be carried through default;
+- how sovereign deterioration affects collateral posting before default;
+- why N_{tau-}^post need not equal N^pool;
+- how Laurent's recovery conventions should be interpreted;
+- what the Greek restructuring does and does not establish;
+- why sovereign collateral recovery and SPV residual LGD are different;
+- whether a separate disposal adjustment is justified;
+- how MPOR differs for security collateral.
+
+That research was useful.
+
+However, do NOT preserve every intermediate distinction merely because it was
+useful during model development.
+
+Where analysis ultimately establishes that a separate parameter or stage is
+unnecessary in the baseline, simplify the final methodology accordingly.
+
+For example, if there is no separately justified disposal friction, the result
+of the q_disp analysis should be to REMOVE q_disp from the baseline model,
+not to retain an entire disposal stage whose parameter equals 1.
+
+Detailed reasoning supporting such decisions may remain in an appendix or
+model-risk discussion.
+
+======================================================================
+3. REDUCE THE MODEL TO TWO ECONOMIC TIMES: tau- AND tau
+======================================================================
+
+Reconsider whether the current “Stage 1 / Stage 2a / Stage 2b / Stage 3”
+architecture is genuinely helpful.
+
+Conceptually, the baseline model mainly requires two states/times:
+
+    tau-:
+        immediately before the loss-trigger event;
+
+    tau:
+        the loss-trigger / contractual unwind state.
+
+At tau-:
+
+    N_{tau-}^post
+      =
+    min(
+        N_{tau-}^req,
+        N^pool
+    ).
+
+The pre-default sovereign credit path determines P_t and therefore how much
+bond principal has become posted by tau-.
+
+At tau:
+
+    V_tau^uw
+        = derivative unwind value;
+
+    B_tau^uw
+        = value of the posted collateral available against the unwind claim.
+
+Then:
+
+    E_tau
+      =
+    (V_tau^uw - B_tau^uw)^+.
+
+This is the central event transition.
+
+Do not create multiple formal “stages” merely to describe the two terms inside
+this exposure equation.
+
+If “stages” remain useful pedagogically, keep them very light. Otherwise
+organize the sections directly around:
+
+    CVA/exposure
+    -> collateral quantity
+    -> collateral unwind-state value
+    -> derivative unwind value.
+
+======================================================================
+4. KEEP B^uw AS THE CENTRAL COLLATERAL OBJECT
+======================================================================
+
+Use:
+
+    B_tau^uw
+
+as the quantity entering CVA:
+
+    E_tau = (V_tau^uw - B_tau^uw)^+.
+
+Avoid maintaining a baseline chain such as:
+
+    B^def -> B^disp -> B^uw
+
+unless there are genuinely different economically material quantities that
+must be modeled separately.
+
+For the baseline, B_tau^uw should answer one practical question:
+
+    What value of the posted sovereign bond is available to offset the
+    derivative unwind claim at the loss-relevant event?
+
+If event-state market value and disposal proceeds are assumed identical for
+the baseline, there is no need for two separate symbols.
+
+If an incremental disposal effect is later established, introduce it as a
+refinement/sensitivity rather than part of the core model.
+
+Likewise, “distress” belongs to the pre-event evolution of P_t and should not
+replace the event-state concept.
+
+======================================================================
+5. KEEP THE TWO RECOVERIES, BUT EXPLAIN THEM ONCE
+======================================================================
+
+Preserve the distinction between:
+
+    R_eff
+        determines the value of the sovereign collateral at the event;
+
+and:
+
+    LGD_SPV
+        applies to any residual unsecured derivative claim against the
+        Repack vehicle after collateral has been credited.
+
+This distinction is economically real and should NOT be removed merely for
+simplicity.
+
+Under the reduced-form collateral approximation:
+
+    B_tau^uw
+      ≈
+    R_eff N_{tau-}^post,
+
+so:
+
+    exposure before SPV recovery
+      =
+    (V_tau^uw - R_eff N_{tau-}^post)^+.
+
+Then LGD_SPV applies to that residual claim.
+
+However, explain this distinction ONCE, cleanly.
+
+Do not repeatedly revisit why R_eff and LGD are different.
+
+If documentary analysis supports a limited-recourse assumption under which
+little or no additional value remains after collateral is exhausted, then:
+
+    LGD_SPV ≈ 1
+
+is a reasonable modeling assumption.
+
+State it concisely and condition it on the waterfall/ranking/recourse
+documentation.
+
+Do not make “LGD = 1” look like a mathematical trick used to move recovery
+inside the exposure equation.
+
+The economic interpretation is:
+
+    sovereign recovery determines collateral value;
+
+    SPV LGD determines recovery on the residual unsecured claim.
+
+======================================================================
+6. KEEP THE COLLATERAL CAP — THIS IS CORE, NOT OVERANALYSIS
+======================================================================
+
+Do NOT simplify away:
+
+    N_t^post
+      =
+    min(
+        V_t/(q_CSA P_t),
+        N^pool
+    ).
+
+This is one of the genuinely important results.
+
+It captures the fact that deterioration has two effects before default:
+
+    P_t decreases
+        ->
+    each unit of bond is worth less;
+
+but also:
+
+    P_t decreases
+        ->
+    more bond principal is called under the CSA.
+
+Before the cap binds, the second effect partially offsets the first.
+
+Once:
+
+    N_t^post = N^pool,
+
+the collateral pool is exhausted and further deterioration directly reduces
+coverage.
+
+This is economically material and should remain in the core methodology.
+
+But it should require only a concise explanation and perhaps the two-regime
+formula; it does not require a large standalone apparatus.
+
+======================================================================
+7. SIMPLIFY THE “TWO PATHS” DISCUSSION
+======================================================================
+
+Retain the insight that:
+
+    N_{tau-}^post
+
+depends on the pre-default path.
+
+A gradual deterioration path may result in:
+
+    N_{tau-}^post = N^pool,
+
+whereas a sufficiently discontinuous jump may result in:
+
+    N_{tau-}^post < N^pool.
+
+This is important.
+
+However, do NOT create a separate “two-path model.”
+
+In a full stochastic implementation, both are simply outcomes of:
+
+    sovereign credit evolution
+        ->
+    P_t
+        ->
+    N_t^post
+        ->
+    tau.
+
+Their probabilities should emerge endogenously from the modeled dynamics.
+
+For the current worked example, if the model does not yet simulate these
+dynamics fully, show:
+
+    cap-bound case
+
+and:
+
+    jump-before-cap case
+
+as scenarios/sensitivities demonstrating the materiality of N_{tau-}^post.
+
+Do not assign arbitrary probabilities.
+
+Do not overdevelop this section beyond what is required to establish the
+path-dependence of posted collateral quantity.
+
+======================================================================
+8. KEEP THE RECOVERY LITERATURE OUT OF THE CORE DERIVATION
+======================================================================
+
+The Laurent analysis was important for determining what recovery conventions
+are available and for preventing an unsupported claim that RFV is universally
+correct.
+
+Retain all three conventions in the supporting literature discussion:
+
+    RMV
+    RT
+    RFV.
+
+But the main methodology does not need a long derivation of all three.
+
+The main body needs only to establish:
+
+    B_tau^uw
+      =
+    event-state value of the posted sovereign collateral,
+
+and that this requires a chosen recovery/restructuring convention.
+
+For the proposed reduced-form implementation:
+
+    B_tau^uw
+      ≈
+    R_eff N_{tau-}^post,
+
+where R_eff is interpreted as effective market value of the
+recovery/restructuring consideration per unit of old principal.
+
+Detailed RMV/RT/RFV mechanics, including Laurent's coupon-versus-principal
+discounting result, should live primarily in the literature appendix.
+
+Make explicit there that Laurent's discounting result concerns pre-default
+pricing of a live defaultable bond and is distinct from the CVA event-state
+valuation question.
+
+======================================================================
+9. USE GREECE AS EVIDENCE, NOT AS A SECOND MODEL
+======================================================================
+
+The Greek analysis should support two important conclusions:
+
+1. severe sovereign deterioration and bond-price decline can occur well before
+   the contractual default/restructuring event;
+
+2. actual sovereign restructuring consideration can be a complex package whose
+   market value per unit of old principal can be represented approximately by
+   R_eff for a reduced-form CVA implementation.
+
+That is enough for the main methodology.
+
+Do not let the Greek case become a parallel methodology.
+
+Keep detailed discussion of:
+
+- nominal haircut;
+- PV/economic haircut;
+- restructuring-package value;
+- distressed pre-event prices;
+- CDS auction Final Price;
+- security-specific treatment
+
+in the appendix.
+
+The main text should use only the empirical conclusions required to motivate
+the model.
+
+======================================================================
+10. KEEP V^uw, BUT DO NOT OVERDEVELOP THE UNWIND-BASIS MODEL
+======================================================================
+
+The distinction:
+
+    V_{tau-}
+        versus
+    V_tau^uw
+
+is genuine and should remain.
+
+But the central principle is simply:
+
+    the derivative claim entering CVA must be valued according to the
+    contractual/economic unwind convention applicable at the event.
+
+The normal-state valuation basis should not automatically be carried through.
+
+If the current duration approximation:
+
+    V_tau^uw
+      ≈
+    V_{tau-} exp[-(r_base,def-r_base)D]
+
+is retained, clearly identify it as an illustrative approximation only.
+
+Do not let this approximation become a second major modeling framework.
+
+Production methodology should revalue the transaction pathwise under the
+specified unwind-state valuation assumptions where possible.
+
+======================================================================
+11. MPOR AND IMPLEMENTATION SHOULD REMAIN SECONDARY
+======================================================================
+
+Keep the useful MPOR insight:
+
+    security collateral:
+        quantity freezes;
+        value does not.
+
+But MPOR is implementation machinery around the core model, not part of its
+economic definition.
+
+Likewise, implementation details concerning:
+
+- MtM cubes;
+- collateral-driving portfolios;
+- regression reuse;
+- Brownian bridges;
+- scalar collateral representations;
+- timing conventions;
+
+should appear only after the economic model is fully clear.
+
+Do not allow implementation architecture to make the economic methodology look
+more complicated than it is.
+
+======================================================================
+12. ASK OF EVERY SECTION: IS THIS CORE, SUPPORT, OR OPTIONAL?
+======================================================================
+
+Perform a classification pass.
+
+CORE — must remain prominent:
+
+- CVA remains expected loss on the derivative counterparty claim;
+- C2 / identification of the modeled loss-trigger event;
+- E_tau = (V_tau^uw - B_tau^uw)^+;
+- finite collateral pool and N_{tau-}^post;
+- pre-default deterioration affects posted quantity;
+- B_tau^uw requires event-state recovery/restructuring valuation;
+- V_tau^uw may differ from V_{tau-};
+- R_eff and residual SPV LGD are different economic objects;
+- pathwise expectation/default weighting.
+
+SUPPORTING — keep but subordinate / appendix where possible:
+
+- Laurent RMV / RT / RFV details;
+- Greek restructuring evidence;
+- break-even recovery diagnostics;
+- detailed documentary evidence;
+- MPOR implementation;
+- existing-engine mapping;
+- regulatory context.
+
+OPTIONAL / SENSITIVITY — do not make baseline machinery:
+
+- separate disposal adjustment;
+- q_disp < 1;
+- detailed disposal timing;
+- illustrative duration approximation;
+- cap-bound versus jump cases when not yet generated stochastically;
+- additional short-horizon bond diffusion over MPOR.
+
+If optional material currently looks like a fundamental component of the model,
+demote it.
+
+======================================================================
+13. TARGET THE WHITEBOARD TEST
+======================================================================
+
+After revision, the complete economic model should be explainable to a senior
+quant on a whiteboard in a few minutes.
+
+It should reduce to approximately:
+
+    CVA
+      =
+    LGD_SPV sum_i DF_i Delta S_i
+        E[(V_i^uw - B_i^uw)^+],
+
+where:
+
+    N_{i-}^post
+      =
+    min(
+        V_{i-}/(q_CSA P_{i-}),
+        N^pool
+    ),
+
+and:
+
+    B_i^uw
+      =
+    event-state value of that posted sovereign collateral,
+
+with first implementation:
+
+    B_i^uw
+      ≈
+    R_eff N_{i-}^post.
+
+Then explain:
+
+    - sovereign deterioration drives P_t and therefore N_t^post;
+    - sovereign default/restructuring is the modeled event under C2;
+    - the event determines V^uw and B^uw;
+    - R_eff values the collateral;
+    - LGD_SPV applies only to the residual counterparty claim.
+
+If substantially more machinery is required before the reader can understand
+those statements, simplify further.
+
+======================================================================
+14. DO NOT SIMPLIFY AWAY THE HARD-WON CORRECTIONS
+======================================================================
+
+This simplification pass must NOT regress to any of the earlier problematic
+assumptions.
+
+In particular, do NOT:
+
+- replace B_tau^uw with performing bond MTM;
+- assume N_{tau-}^post = N^pool on every path;
+- ignore the finite collateral cap;
+- assume the bond remains near par until default;
+- identify sovereign issuer recovery with SPV counterparty recovery;
+- identify sovereign issuer and derivative counterparty as the same obligor;
+- treat CDS recovery as automatically equal to collateral liquidation value;
+- claim RFV is empirically established as universally correct;
+- add a separate liquidity/disposal haircut without evidence;
+- double-count recovery through both B^uw and LGD;
+- ignore the distinction between tau- and tau.
+
+The objective is not a simpler but less correct model.
+
+The objective is to retain the correct economics while making the final
+methodology look as simple as those economics actually are.
+
+======================================================================
+15. FINAL EDITING PRINCIPLE
+======================================================================
+
+Treat the previous analysis as scaffolding.
+
+Some scaffolding was necessary to build the model, but it does not all need
+to remain visible in the finished structure.
+
+The final note should distinguish clearly between:
+
+    what the model IS,
+
+    why we believe that model is economically appropriate,
+
+    how individual assumptions are calibrated,
+
+    and what future refinements could be added.
+
+Do not give all four categories equal weight in the main methodology.
+
+The finished paper should leave the reader with one compact mental model:
+
+    pre-default sovereign deterioration
+        ->
+    P_t
+        ->
+    N_t^post subject to finite pool
+        ->
+    loss-trigger event tau
+        ->
+    V_tau^uw and B_tau^uw
+        ->
+    residual exposure
+        ->
+    CVA.
+
+Please make the revision with that simplification objective, then perform a
+final pass specifically looking for symbols, sections, “stages,” sensitivities
+or explanatory paragraphs that can be removed without losing economic
+correctness.
