@@ -1,0 +1,226 @@
+Please revise the latest Repack CVA white paper using the current draft as the base. This should be a substantive methodology revision rather than an additive edit: reconcile the existing paper with the framework below, remove or consolidate material that reflects an inconsistent/older approach, and preserve useful analysis already present.
+
+The target is a clean, self-contained CVA methodology paper whose structure, notation, example-driven presentation, and level of detail are as consistent as reasonably possible with the finalized Repack FVA white paper. Do not force artificial symmetry where CVA economics require different treatment.
+
+1. Establish a running numerical example near the beginning
+
+As in the FVA paper, introduce an explicit table of key variables and example values early in the document. Use the same transaction/example conventions as the FVA paper wherever applicable.
+
+At minimum include:
+
+* (V_0): initial / current clean derivative value or relevant swap MTM
+* (B_0): current market value of collateral bond
+* (r_{\text{base}}): normal-state base discount curve/spread, using RFR + 3 bp as the illustrative value
+* (r_{\text{base,default}}): default-state base/close-out discount curve/spread, using RFR + 200 bp as the illustrative value
+* issuer CDS/default curve or hazard-rate input used to derive survival/default probabilities
+* (R_{\text{issuer}}), if required by the credit-curve/default model
+* the bond default/recovery convention required by the collateral valuation methodology
+* (q_{\text{liq}}): fraction of modeled default-state collateral value assumed realizable, tentatively 70% for the numerical example
+* equivalently, if useful, (h_{\text{liq}}=1-q_{\text{liq}}=30%)
+* MPOR (\delta), identifying the value used by the existing CVA engine where appropriate
+* any other variables genuinely required to reproduce the numerical example and methodology.
+
+IMPORTANT: verify the precise definition of (q_{\text{liq}}) from the Greek sovereign-bond/default-value methodology already referenced in the draft/source material. Do not assume that “70% haircut” and “70% realization factor” mean the same thing. Clearly distinguish a realization fraction from a haircut. For now the intended illustrative assumption is 70% realization / 30% liquidity haircut unless the referenced methodology defines the variable differently.
+
+Do NOT include repo haircuts, rehypothecation parameters, regulatory VM haircuts, or CCR supervisory haircuts in this CVA example table. Those belong to different questions.
+
+2. Clarify exactly what default is being modeled
+
+Make explicit that CVA is conceptually concerned with default/non-performance of the derivative counterparty, the Repack SPV.
+
+However, for this structure, investigate and clearly articulate the practical transaction mechanics: if default of the underlying collateral bond/issuer causes the Repack swap to terminate or unwind, the underlying issuer default can be used as the economically relevant modeled event.
+
+If supported by the transaction structure, explain the modeling choice as:
+
+“The underlying bond issuer credit curve is used to model the default event relevant to the Repack transaction because default of the collateral bond triggers termination/unwind of the swap.”
+
+Avoid loosely stating that:
+
+“SPV credit curve = bond issuer credit curve.”
+
+The latter implies equivalence of two legally distinct obligors and is stronger than the economic assumption actually required.
+
+Explain that the issuer survival probability applies to the transaction/payoff as a whole. Do not incorrectly characterize the issuer CDS curve as a discount curve for either the bond leg or the €STR leg.
+
+Clearly distinguish:
+
+1. issuer CDS/default curve → probability/timing of the modeled default event;
+2. normal/default-state base discount curves → valuation of the transaction/payoff;
+3. collateral bond default/recovery/liquidation methodology → value of collateral available when the default event occurs.
+
+3. Reframe the core CVA exposure around default-state quantities
+
+The central exposure concept should not be a naïve pre-default
+
+[
+(V_{\tau^-}-B_{\tau^-})^+.
+]
+
+At issuer/default-trigger event, both the transaction value and collateral value may change materially.
+
+Develop the methodology around a default-state exposure concept such as
+
+[
+E_\tau =
+\left[
+V_\tau^{\mathrm{default/closeout}}
+
+B_\tau^{\mathrm{realized}}
+\right]^+,
+]
+
+with notation refined as appropriate for the actual implementation.
+
+Explain why using the pre-default market value of the collateral bond can materially overstate collateral protection: the same issuer credit event that causes the Repack termination/default exposure can cause a discontinuous decline in the value of the collateral bond.
+
+This is the economically important wrong-way-risk feature of the Repack.
+
+Do not merely describe this qualitatively. Connect it explicitly to the mathematical exposure definition and running numerical example.
+
+4. Directly model collateral bond value at default
+
+Make this a central part of the paper.
+
+The methodology should model the collateral bond’s value in the issuer-default state rather than mechanically applying regulatory collateral haircuts.
+
+Use the Greek bond/default-recovery paper already referenced in the project as the basis for the candidate approaches where appropriate. Clearly describe the candidate default-value/recovery conventions considered (including recovery-of-Treasury versus recovery-of-face-value or other relevant alternatives from that paper), their economic meaning, and why one may be preferable for the Repack collateral.
+
+Then separately address realization/liquidity effects.
+
+If the structure is
+
+[
+B_\tau^{\mathrm{realized}}
+
+q_{\text{liq}},
+B_\tau^{\mathrm{default-model}},
+]
+
+state this explicitly and explain what (q_{\text{liq}}) represents.
+
+Do not conflate:
+
+* default/recovery modeling of the bond;
+* liquidity/realization haircut;
+* regulatory VM haircut;
+* CCR supervisory haircut.
+
+Only the first two are relevant to this economic CVA methodology unless there is a specific reason otherwise.
+
+If the current white paper uses a static non-cash collateral haircut as a substitute for explicit default-state bond valuation, reconcile it with this framework. Remove, replace, or demote that treatment to an approximation/alternative where appropriate.
+
+5. Treat the swap value consistently in the default state
+
+Explain the role of (r_{\text{base}}) versus (r_{\text{base,default}}).
+
+Illustratively:
+
+* normal state: RFR + 3 bp;
+* default state: RFR + 200 bp.
+
+These should not be confused with the issuer CDS curve.
+
+Explain how the default-state curve affects (V_\tau^{\mathrm{default/closeout}}), and why this is separate from the issuer credit curve determining the probability of reaching the default state.
+
+Also make clear that if issuer default contractually terminates/unwinds the Repack, the resulting termination/close-out mechanics form part of the transaction payoff definition. Do not incorrectly characterize disappearance of future €STR payments by itself as counterparty credit loss.
+
+6. CVA calculation
+
+After establishing the above pieces, show clearly how they feed into CVA.
+
+The logical flow should be approximately:
+
+issuer credit curve
+→ default/survival probabilities
+→ transaction value in relevant default state
+→ collateral bond default-state value
+→ liquidity/realization adjustment
+→ residual positive exposure
+→ LGD/recovery treatment where applicable
+→ CVA.
+
+Use the running numerical example throughout rather than introducing disconnected examples.
+
+Be especially careful to avoid double-counting recovery/default losses. If issuer recovery is already embedded in the modeled collateral bond value at default, do not independently apply the same loss again through a haircut or LGD unless it represents a genuinely different economic effect.
+
+7. MPOR
+
+The existing cash-collateral CVA and FVA engine already implements MPOR. The non-cash methodology therefore should not silently ignore it.
+
+Add a concise, dedicated discussion explaining:
+
+* how MPOR is treated in the existing cash-collateral CVA framework;
+* what changes when collateral is a bond whose value can move during MPOR;
+* whether the current proposed implementation explicitly models bond-value evolution over MPOR or whether this is deferred;
+* how this interacts with the default-state bond realization framework described above.
+
+Do not unnecessarily expand the paper into a full MPOR redesign if this is outside current implementation scope. Clearly identify current implementation versus proposed extension/limitation.
+
+For consistency, note that the Repack FVA methodology should ultimately contain a corresponding scope statement because MPOR also exists in the current cash-collateral FVA engine. However, do not import FVA/repo analysis into this CVA paper.
+
+8. Regulatory material
+
+Keep regulatory discussion only where it provides necessary context.
+
+Clearly separate:
+
+* regulatory margin requirements governing collateral exchange;
+* CSA contractual collateral;
+* regulatory CCR collateral recognition/capital;
+* economic/front-office CVA valuation.
+
+The EBA Repack CCR Q&A can be cited as useful evidence that the derivative can create CCR and that collateral recognition is not automatic, but do NOT use the CCR supervisory haircut as the economic CVA haircut and do not present the CCR capital framework as determining the CVA methodology.
+
+Likewise, if the SPV is exempt from a mandatory regulatory VM requirement, do not infer that the CSA collateral is irrelevant to CVA. The actual CSA collateral still affects economic exposure.
+
+Condense regulatory discussion if the current draft gives it disproportionate weight relative to the economic CVA methodology.
+
+9. Reconcile the existing draft rather than layering material onto it
+
+Review the entire latest CVA draft against this framework.
+
+Specifically identify and fix any existing sections that:
+
+* treat SPV default and issuer default as automatically identical without structural justification;
+* use regulatory collateral haircuts as economic CVA inputs;
+* value collateral only using pre-default bond market value;
+* apply a static haircut where explicit default-state bond valuation is now proposed;
+* double-count issuer recovery/default loss;
+* confuse issuer CDS/default curves with discount curves;
+* treat the €STR leg as independently “credit discounted” rather than treating survival/default at the transaction level;
+* overlook transaction termination/close-out mechanics upon issuer default;
+* inconsistently define (q_{\text{liq}}), recovery, or haircut;
+* introduce alternative methodologies without explaining their relationship to the proposed primary methodology.
+
+Consolidate overlapping sections rather than simply adding new sections.
+
+10. Structure and presentation
+
+Use the finalized FVA white paper as the structural/style benchmark:
+
+* clear executive/methodology summary;
+* early running-example/input table;
+* explicit assumptions;
+* intuitive economic explanation before detailed equations;
+* equations tied directly to the running example;
+* clear distinction between current methodology, proposed methodology, assumptions, and open questions;
+* implementation considerations;
+* limitations / items requiring confirmation;
+* concise conclusion.
+
+Preserve CVA-specific structure wherever necessary rather than mechanically copying FVA.
+
+The finished paper should allow a reader to answer, without ambiguity:
+
+1. What default event is being modeled?
+2. Why is the underlying issuer credit curve used?
+3. What determines the probability of default?
+4. What happens to the Repack swap value at default?
+5. What happens to the collateral bond value at default?
+6. What exactly does (q_{\text{liq}})/the liquidity haircut represent?
+7. How is residual exposure calculated?
+8. How does that exposure enter CVA?
+9. How is MPOR treated?
+10. Which assumptions are contractual, which are market/model assumptions, and which are merely regulatory context?
+
+Please produce a fully revised paper, not a change log. Where an important factual or transaction-specific assumption cannot be established from the available material, flag it explicitly as requiring confirmation rather than silently assuming it.
