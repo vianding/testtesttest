@@ -1,0 +1,529 @@
+Please make the following targeted revisions to the latest “CVA for Non-Cash VM” draft.
+
+Do not otherwise restructure or materially rewrite the document. The objective is to improve readability and notation consistency, particularly on the first few pages, while preserving the methodology and structure of the latest draft.
+
+============================================================
+1. SIMPLIFY THE OPENING: EXPLAIN THE LOGIC BEFORE THE FULL EQUATIONS
+============================================================
+
+The current Executive Summary presents the full methodology equation before
+N^post, N^req, N^pool and the other variables have been introduced.
+
+For a new reader this makes the first page unnecessarily difficult to follow.
+
+Do NOT move the full notation table to page 1.
+
+Instead, introduce only the minimum notation needed before displaying the
+central methodology.
+
+Explain briefly in words:
+
+    N_t^pool
+        total bond face/notional available in the collateral pool
+
+    N_t^req
+        bond face/notional required under the CSA
+
+    N_t^post
+        bond face/notional actually posted under the CSA
+
+    B_tau^def
+        value of the posted bond in the default/restructuring state
+
+    B_tau^disp
+        collateral disposal value available to the dealer
+
+    V_tau^uw
+        derivative unwind value at the loss-trigger event
+
+Then emphasize the conceptual sequence:
+
+    credit-state-dependent bond value
+        ->
+    N_{tau-}^post
+        ->
+    B_tau^def
+        ->
+    B_tau^disp
+        ->
+    E_tau.
+
+The most important equation for the reader to understand initially is:
+
+    E_tau = (V_tau^uw - B_tau^disp)^+.
+
+The detailed collateral-posting equations and full CVA summation should appear
+after the relevant notation has been introduced in the methodology sections.
+
+If a compact CVA expression remains in the Executive Summary, make sure the
+preceding prose is sufficient for a technically sophisticated reader to
+understand every quantity without referring ahead to the notation table.
+
+The objective is:
+
+    economic logic first;
+    mathematical completeness second.
+
+============================================================
+2. USE N^post RATHER THAN N^posted
+============================================================
+
+Replace:
+
+    N_t^posted
+
+with:
+
+    N_t^post
+
+throughout.
+
+Likewise use:
+
+    B_t^post
+
+rather than:
+
+    B_t^posted.
+
+The core CSA relationship is:
+
+    N_t^post = min(N_t^req, N_t^pool).
+
+Most importantly, when determining collateral available at the loss-trigger
+event, use:
+
+    N_{tau-}^post
+
+rather than N_tau^post.
+
+This distinction is economically important.
+
+The relevant quantity is the bond notional already posted immediately before
+the event. A jump occurring at tau does not automatically cause additional
+bond collateral to become posted at tau.
+
+Therefore default-state collateral valuation should depend on:
+
+    N_{tau-}^post.
+
+============================================================
+3. USE “UNWIND VALUE” AS THE PRIMARY DERIVATIVE TERMINOLOGY
+============================================================
+
+Replace:
+
+    V_tau^co
+
+with:
+
+    V_tau^uw
+
+throughout the methodology.
+
+Define:
+
+    V_tau^uw
+        derivative unwind value at the loss-trigger event.
+
+Use “unwind” as the primary terminology because the assumed transaction
+mechanics are:
+
+    collateral issuer default/restructuring
+        ->
+    derivative termination/unwind
+        ->
+    unwind value determined
+        ->
+    collateral disposal
+        ->
+    residual exposure.
+
+“Close-out” may still be used where legally or technically appropriate,
+particularly when discussing documentation, but the primary mathematical
+notation should be V^uw.
+
+This helps distinguish the transaction-specific Repack unwind mechanism from a
+generic counterparty-default close-out framework.
+
+============================================================
+4. DO NOT USE “REAL” FOR COLLATERAL PROCEEDS
+============================================================
+
+Remove:
+
+    B_tau^real
+
+and avoid “real” or “realization” as mathematical superscripts/subscripts.
+
+In a fixed-income document, particularly one whose illustrative collateral is
+inflation-linked, “real” can naturally be interpreted as real versus nominal.
+
+Instead use:
+
+    B_tau^disp
+
+for:
+
+    collateral disposal value available to the dealer following the
+    loss-trigger event.
+
+Thus the exposure equation becomes:
+
+    E_tau = (V_tau^uw - B_tau^disp)^+.
+
+Use “disposal value” or “disposal proceeds” consistently in prose.
+
+Avoid wording such as “ultimate recovery” where it could imply a workout value
+received years after default. The relevant quantity is the economic value
+available through the contractual unwind/disposal process.
+
+============================================================
+5. REPLACE q_liq / q_rel / q_res WITH q_disp
+============================================================
+
+Use:
+
+    q_disp
+
+throughout.
+
+Define:
+
+    q_disp
+        incremental disposal adjustment applied after determining the
+        default/restructuring-state collateral value.
+
+Then:
+
+    B_tau^disp = q_disp B_tau^def.
+
+Do NOT define q_disp simply as a “liquidity haircut.”
+
+Its purpose is broader.
+
+It represents any incremental difference between the modeled
+default/restructuring-state value B_tau^def and the disposal value available
+to the dealer, for example:
+
+- execution costs;
+- disposal delay;
+- market impact;
+- transaction-specific liquidation effects;
+
+but only to the extent these effects are NOT already reflected in B_tau^def.
+
+The baseline should be:
+
+    q_disp = 1.00.
+
+Explain explicitly what this means.
+
+q_disp = 1 does NOT mean:
+
+    “the defaulted sovereign bond is perfectly liquid.”
+
+It means:
+
+    no separate disposal adjustment is applied beyond the modeled
+    default/restructuring-state market value.
+
+If B_tau^def or R_eff is calibrated from observable restructuring-package
+market values, CDS auction/defaulted-security prices, distressed/default-state
+market prices, or another measure that already reflects disposal conditions,
+applying an additional q_disp < 1 could double count the same economic effect.
+
+Use q_disp < 1 only where there is an identifiable incremental disposal effect
+not already embedded in B_tau^def / R_eff.
+
+Any q_disp < 1 case should therefore be presented as a modeling assumption or
+sensitivity, not as an inherent consequence of sovereign default.
+
+Do not reintroduce:
+
+    B^real
+    q_liq
+    q_rel
+    q_res
+
+elsewhere in the paper.
+
+============================================================
+6. Update to q_CSA = 90%
+============================================================
+
+The current notation table shows:
+
+    q_CSA = 85%
+	
+set it to 90%, and if there are other numbers deriving from it, update accordingly
+
+Make clear:
+
+    q_CSA determines how much performing bond collateral receives sufficient
+    collateral credit under the CSA.
+
+It does NOT determine what that bond is worth after default/restructuring.
+
+============================================================
+7. CLEAN UP THE NOTATION TABLE
+============================================================
+
+Revise the notation table using the following vocabulary consistently:
+
+    V_t
+        derivative value / cash-equivalent VM requirement
+
+    V_tau^uw
+        derivative unwind value at the loss-trigger event
+
+    N_t^pool
+        total bond face/notional available in the collateral pool
+
+    N_t^req
+        bond face/notional required under the CSA
+
+    N_t^post
+        bond face/notional actually posted under the CSA
+
+    B_t^pool
+        market value of the total available bond collateral pool
+
+    B_t^post
+        market value of bond actually posted under the CSA
+
+    P_t
+        bond market price per unit face/notional
+
+    q_CSA
+        contractual CSA valuation percentage
+
+    B_tau^def
+        value of posted collateral in the default/restructuring state
+
+    B_tau^disp
+        collateral disposal value available to the dealer
+
+    R_eff
+        effective default/restructuring value per unit of posted bond face
+
+    q_disp
+        incremental disposal adjustment after default-state valuation
+
+    S(t)
+        survival probability of the modeled loss-trigger event
+
+    LGD
+        residual loss severity on the counterparty claim after collateral
+
+    delta
+        MPOR, with units stated explicitly
+
+    r_base
+        normal-state derivative valuation basis/spread
+
+    r_base,def
+        default-state derivative unwind valuation basis/spread.
+
+Every numerical example in the table should be identifiable as one of:
+
+    [DOC]          transaction/documentary input
+    [MARKET]       observed/current market quantity
+    [DERIVED]      derived quantity
+    [MODEL CHOICE] modeling/calibration assumption
+    [SENSITIVITY]  illustrative sensitivity.
+
+For example:
+
+    q_CSA
+    Contractual CSA valuation percentage
+    90% [DOC]
+
+    q_disp
+    Incremental disposal adjustment
+    1.00 [MODEL CHOICE: no separate disposal adjustment]
+
+    N_pool
+    Total bond face/notional available in collateral pool
+    €51m [DOC]
+
+    B_0^post
+    Current market value of bond required/posted under CSA
+    €29.60m [DERIVED]
+
+    N_0^post
+    Current bond face/notional required/posted
+    approximately €34m [DERIVED; verify exact price/indexation convention]
+
+    R_eff
+    Effective default/restructuring value per unit posted face
+    40% / 22% [illustrative scenarios]
+
+Do not present €34m and €51m in a way that suggests they are the same quantity.
+
+Also verify the exact derivation of N_0^post from the bond price/indexation
+convention before treating €34m as final.
+
+============================================================
+8. PRESERVE AND SHARPEN THE §3 MESSAGE
+============================================================
+
+The current §3 logic is good and should remain.
+
+While sufficient collateral is available:
+
+    B_{tau-}^post
+        ≈ V_{tau-}/q_CSA
+        > V_{tau-}
+
+for q_CSA < 1.
+
+Therefore:
+
+    (V_{tau-} - B_{tau-}^post)^+ ≈ 0.
+
+Retain the important conclusion:
+
+    this is a property of the margining mechanism,
+    not evidence that default-state exposure is zero.
+
+Then transition directly to:
+
+    E_tau = (V_tau^uw - B_tau^disp)^+.
+
+Make the distinction between tau- and tau visually prominent.
+
+The reader should understand the sequence:
+
+    immediately before the event:
+        performing CSA margining may make exposure approximately zero
+
+    at the event:
+        the derivative is unwound and the sovereign bond enters its
+        default/restructuring state
+
+    following the event:
+        the relevant collateral quantity is its disposal value,
+        B_tau^disp
+
+    therefore:
+        B_{tau-}^post cannot simply be substituted for B_tau^disp.
+
+============================================================
+9. KEEP THE COLLATERAL-QUANTITY DYNAMICS CLEAR
+============================================================
+
+Preserve the distinction among:
+
+(a) the total collateral pool held/available;
+(b) collateral actually posted under the CSA;
+(c) assets legally available to satisfy the dealer's unwind claim.
+
+The current draft correctly states that these do not necessarily coincide.
+
+Do not describe the €51m pool simply as static “overcollateralization.”
+
+The mechanism is dynamic:
+
+    bond credit deterioration
+        ->
+    P_t falls
+        ->
+    N_t^req increases
+        ->
+    progressively more bond notional may be posted
+        ->
+    N_t^post may eventually reach N_pool.
+
+Thus:
+
+    N_t^post = min(N_t^req, N_t^pool).
+
+For the worked example, distinguish clearly between:
+
+    N_0^post
+
+and:
+
+    N_pool = €51m.
+
+If a default-state example assumes:
+
+    N_{tau-}^post = N_pool = €51m,
+
+state the assumption explicitly:
+
+    [MODEL CHOICE]
+    The collateral cap is assumed to have become binding during the
+    pre-default deterioration, so the entire available pool is posted
+    immediately before the loss-trigger event.
+
+Do not imply that a jump occurring at tau itself causes the remaining pool to
+become posted.
+
+============================================================
+10. FINAL NOTATION AND CORE ECONOMIC CHAIN
+============================================================
+
+After these revisions, the main notation should be internally consistent:
+
+    N^pool       available bond pool notional
+    N^req        CSA-required bond notional
+    N^post       actually posted bond notional
+
+    B^pool       market value of available bond pool
+    B^post       market value of posted bond
+
+    V^uw         derivative unwind value
+
+    B^def        default/restructuring-state value of posted bond
+    B^disp       collateral disposal value available to dealer
+
+    q_CSA        contractual CSA valuation percentage
+    R_eff        effective default/restructuring value per unit face
+    q_disp       incremental disposal adjustment.
+
+The core economic sequence should read:
+
+    credit-state-dependent P_t
+        ->
+    N_{tau-}^post
+        ->
+    B_tau^def
+        ->
+    B_tau^disp = q_disp B_tau^def
+        ->
+    E_tau = (V_tau^uw - B_tau^disp)^+.
+
+The CVA expression then uses:
+
+    CVA_0
+      = LGD Σ_i DF(0,t_i)
+          E[(V_ti^uw - B_ti^disp)^+]
+          ΔS_i.
+
+============================================================
+11. KEEP THE MAIN DOCUMENT LIGHT
+============================================================
+
+These changes should improve readability rather than increase the length of
+the main paper.
+
+Detailed justification for:
+
+- sovereign recovery conventions;
+- interpretation/calibration of R_eff;
+- Greek restructuring evidence;
+- why q_disp = 1 is the baseline;
+- potential q_disp sensitivities;
+- documentary source for q_CSA;
+- and transaction-specific unwind mechanics
+
+belongs in the relevant appendices.
+
+The main body should state the methodology and economic logic clearly and refer
+to the appendices for supporting evidence.
+
+In particular, the first page should allow a new quant/XVA reviewer to
+understand the central story without already knowing what N^post, B^def,
+B^disp or V^uw mean.
