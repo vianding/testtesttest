@@ -1,0 +1,968 @@
+Please revise the latest version of the “Pricing CVA for Non-Cash VM / Sovereign Bond Collateral” note.
+
+The current draft contains most of the required technical content and several important improvements, especially around collateral quantity, the finite collateral pool, pre-default deterioration, recovery modeling, MPOR, and implementation.
+
+The next revision should NOT add more machinery. Its main objective is to simplify and strengthen the conceptual structure.
+
+The document should read top-down from the CVA problem into the specific modeling components, with a clear distinction among:
+
+- core economic/modeling principles;
+- modeling/calibration choices;
+- transaction-specific documentary assumptions;
+- implementation refinements and sensitivities.
+
+Do not mechanically patch individual paragraphs. Reorganize where necessary so the document reads as one CVA model being progressively decomposed.
+
+======================================================================
+1. RESTORE A TOP-DOWN, CVA-CENTERED STRUCTURE
+======================================================================
+
+Start from the economic object ultimately being calculated:
+
+    CVA
+      ->
+    event exposure E_tau
+      ->
+    E_tau = (V_tau^uw - B_tau^uw)^+.
+
+Define the two central event-state quantities early:
+
+    V_tau^uw
+        derivative value/claim determined in the contractual unwind state;
+
+    B_tau^uw
+        value of the posted bond collateral available to offset that claim
+        in the contractual unwind state.
+
+The central question of the paper is therefore:
+
+    At the loss-trigger/unwind event, what is the derivative claim and
+    what value of the posted sovereign bond is available against it?
+
+Establish early that:
+
+1. CVA remains expected loss on the derivative counterparty exposure.
+
+2. The special feature of this transaction is that, under the assumed
+   transaction mechanics, default/restructuring of the third-party sovereign
+   collateral issuer both:
+       (a) causes termination/unwind of the derivative; and
+       (b) changes/immediately impairs the value of the collateral supporting
+           the resulting derivative claim.
+
+3. Therefore the relevant exposure is not the performing-state collateralized
+   exposure immediately before the event. It is:
+
+       E_tau = (V_tau^uw - B_tau^uw)^+.
+
+After establishing this overall CVA/exposure framework, decompose the problem
+into three questions:
+
+    (i)   How much bond principal/notional is actually posted immediately
+          before the event?
+
+    (ii)  What is that posted bond worth for purposes of the unwind once the
+          default/restructuring event has occurred?
+
+    (iii) What is the derivative unwind claim in that same state?
+
+The subsequent sections should answer those questions.
+
+Avoid making the reader work through several pages of collateral mechanics
+before knowing how each quantity enters CVA.
+
+A preferred main-body progression is approximately:
+
+    1. Purpose and CVA object
+    2. Transaction setup and structural conditions
+    3. Pathwise CVA / event exposure
+    4. Pre-default collateral quantity and finite-pool dynamics
+    5. Default/restructuring-state bond valuation
+    6. Derivative unwind valuation
+    7. Worked example / alternative paths to event
+    8. Wrong-way risk and MPOR
+    9. Implementation
+    10. Assumptions, sensitivities, model risk and conclusion
+
+Exact section numbering can differ if a cleaner structure results, but the
+CVA/exposure equation should appear before the detailed modeling components.
+
+======================================================================
+2. USE B^uw AS THE CENTRAL COLLATERAL QUANTITY
+======================================================================
+
+Simplify the current B^def -> B^disp architecture.
+
+Use:
+
+    B_tau^uw
+
+as the central quantity entering exposure.
+
+Define it carefully as:
+
+    B_tau^uw =
+        value of the posted bond collateral available to offset the
+        derivative claim in the contractual unwind state.
+
+Then:
+
+    E_tau = (V_tau^uw - B_tau^uw)^+.
+
+This gives useful symmetry:
+
+    V_tau^uw = derivative unwind-state value
+    B_tau^uw = collateral unwind-state value.
+
+Make clear that B^uw does NOT mean that “the bond itself is unwound.”
+It means the value assigned to/available from the posted collateral for
+purposes of the derivative unwind.
+
+Do not make B^def and B^disp first-class objects in the core methodology
+unless they are genuinely needed.
+
+In particular, the baseline currently has q_disp = 1, so introducing:
+
+    B_tau^def
+        ->
+    B_tau^disp = q_disp B_tau^def
+
+as two separate central stages adds notation without changing the baseline
+economics.
+
+Instead, model B_tau^uw directly.
+
+A general representation can be:
+
+    B_tau^uw
+      =
+    R_fn(
+        N_{tau-}^post,
+        P_{tau-},
+        bond contractual terms,
+        default/restructuring state
+    ).
+
+A reduced-form implementation may then use:
+
+    B_tau^uw ≈ R_eff N_{tau-}^post,
+
+subject to the chosen recovery convention and the definition of face/principal.
+
+B^def may still be used locally in the recovery-model discussion if there is
+a genuine need to distinguish theoretical event-state value from executable
+disposal proceeds, but it should not compete with B^uw in the core framework.
+
+Do NOT rename B^def to B^distress.
+
+“Distress” describes the PRE-default/pre-restructuring credit state. The
+important distinction is:
+
+    distress:
+        affects P_t and therefore N_t^post before tau;
+
+    default/restructuring:
+        determines the event-state collateral value entering B_tau^uw.
+
+======================================================================
+3. TREAT DISPOSAL FRICTION AS A REFINEMENT, NOT A CORE STAGE
+======================================================================
+
+Do not keep B^disp or q_disp as first-class objects in the baseline if:
+
+    q_disp = 1.
+
+If there is a genuine incremental difference between event-state market value
+and the value/proceeds actually available to the dealer because of execution
+costs, disposal delay, market impact or transaction-specific liquidation
+mechanics, introduce that later as a refinement/sensitivity.
+
+For example, only where justified:
+
+    B_available
+        = q_disp B_event-state,
+
+or an equivalent formulation.
+
+Do not visually imply that B_tau^def and an actual disposal transaction are
+two sequential physical states both occurring instantaneously at tau.
+
+If disposal occurs after the event and the timing is economically material,
+distinguish tau from the disposal/realization time explicitly.
+
+Otherwise absorb the relevant market/disposal economics into B_tau^uw.
+
+Also preserve the important non-double-counting point:
+
+if R_eff or the event-state bond value is already calibrated from observable
+restructuring-package market values, CDS auction/defaulted-security prices,
+or distressed/default-state market prices, an additional disposal/liquidity
+adjustment may double count the same effect.
+
+======================================================================
+4. CORRECT THE LANGUAGE AROUND MARKET VALUE
+======================================================================
+
+Do NOT say that “market value is no longer relevant” after default.
+
+The correct statement is:
+
+    the PERFORMING-STATE bond market value cannot simply be carried through
+    the default/restructuring event as the collateral value.
+
+The bond must instead be valued under an explicit event-state
+default/restructuring convention.
+
+This distinction is important because Recovery of Market Value (RMV) is itself
+a legitimate recovery convention.
+
+The economic sequence should be clear:
+
+    pre-event P_t
+        ->
+    determines how much bond is posted;
+
+    default/restructuring event
+        ->
+    recovery/restructuring model determines B_tau^uw.
+
+For example, under RMV the pre-default market value itself enters the recovery
+rule:
+
+    event-state value ~ R x B_{tau-}.
+
+Therefore do not write anything suggesting that market value as a concept is
+irrelevant.
+
+======================================================================
+5. GIVE LAURENT’S THREE RECOVERY APPROACHES A CLEAR ROLE
+======================================================================
+
+In the section modeling B_tau^uw, clearly present all three recovery schemes
+discussed by Laurent et al.:
+
+1. Fractional Recovery of Market Value (RMV)
+
+2. Recovery of Treasury (RT)
+
+3. Recovery of Face Value (RFV)
+
+Explain concisely:
+
+- what economic object is recovered under each convention;
+- how each convention determines the value of the bond around/default;
+- what its implications are for pre-default bond pricing;
+- and why these are genuinely different modeling assumptions.
+
+Preserve Laurent’s important principal-versus-coupon result:
+
+under RFV, principal carries the recovery claim whereas unpaid future coupons
+do not, so using one conventional risky/Z-spread discount curve indiscriminately
+for principal and coupons is generally inconsistent.
+
+However, explicitly separate this from the CVA question.
+
+Laurent’s discounting result concerns PRE-DEFAULT PRICING of a live defaultable
+bond.
+
+Our CVA question at tau is:
+
+    what is the value of the posted collateral available in the
+    default/restructuring/unwind state?
+
+Do not conflate the two.
+
+======================================================================
+6. USE THE GREEK EVIDENCE TO INFORM, NOT DICTATE, THE RECOVERY MODEL
+======================================================================
+
+Use the Greek restructuring evidence naturally in support of the recovery
+discussion.
+
+The Greek evidence should establish that:
+
+- sovereign credit deterioration can occur over a long period before the
+  contractual default/restructuring event;
+
+- bond prices can therefore deteriorate materially before tau;
+
+- the 2012 Greek restructuring was not literally a fixed cash recovery of face;
+
+- old bonds were exchanged for a package of new Greek bonds, EFSF instruments,
+  GDP-linked securities and other consideration;
+
+- therefore a practical quantity such as R_eff can be interpreted as the
+  MARKET VALUE OF THE RESTRUCTURING/RECOVERY CONSIDERATION PER UNIT OF OLD
+  PRINCIPAL, rather than necessarily a literal cash recovery payment.
+
+Thus a reduced-form approximation:
+
+    B_tau^uw ≈ R_eff N_{tau-}^post
+
+can be understood as approximating the richer object:
+
+    B_tau^uw
+      =
+    MV_tau(
+        new bonds
+        + cash/cash-like consideration
+        + contingent claims
+        + other proceeds
+    ).
+
+Do NOT claim that Greece establishes RFV as the universally correct sovereign
+recovery convention.
+
+Do NOT treat the Greek 21.5 CDS auction Final Price, nominal haircut,
+PV/economic haircut, distressed pre-restructuring bond prices, and market value
+of restructuring consideration as interchangeable quantities.
+
+Detailed empirical support belongs in the appendix; the main methodology
+should contain only the conclusions needed to motivate the modeling choice.
+
+======================================================================
+7. IMPROVE C2: SEPARATE PRINCIPLE FROM DOCUMENTARY ASSUMPTION
+======================================================================
+
+Rewrite C2 so that the economic principle and documentary assumption are
+separate.
+
+The principle should say approximately:
+
+    [PRINCIPLE]
+    CVA measures loss on the derivative counterparty claim. In the structure
+    considered here, collateral-issuer default/restructuring is modeled as the
+    loss-relevant event because the same event both impairs the sovereign bond
+    collateral and causes termination/unwind of the derivative.
+
+Then separately:
+
+    [DOC]
+    The assumed contractual linkage between collateral-issuer
+    default/restructuring and derivative termination/unwind must be confirmed
+    from the relevant transaction documents.
+
+Do not write C2 in a way that identifies the collateral issuer and derivative
+counterparty as the same obligor.
+
+The issuer credit/default curve supplies probability/timing for the modeled
+loss-trigger event only because of this assumed transaction-specific linkage.
+
+It is not a discount curve and should not be applied as a credit spread to
+individual derivative legs.
+
+======================================================================
+8. BRING THE FINITE COLLATERAL-POOL CAP INTO THE FIRST N^post PRESENTATION
+======================================================================
+
+The finite collateral pool is central to the economics and should not appear
+only as a later qualification.
+
+Establish from the outset:
+
+    N_t^post
+      =
+    min(N_t^req, N^pool),
+
+with approximately:
+
+    N_t^req
+      =
+    V_t / (q_CSA P_t),
+
+subject to the exact contractual mechanics.
+
+Therefore:
+
+    B_t^post
+      =
+    P_t N_t^post
+      =
+    min(
+        V_t/q_CSA,
+        P_t N^pool
+    ).
+
+This immediately gives two regimes.
+
+REGIME 1 — CAP NOT BINDING
+
+    N_t^post < N^pool.
+
+As sovereign credit deteriorates:
+
+    P_t falls
+        ->
+    N_t^req rises
+        ->
+    more bond principal is called/posted.
+
+The increased quantity partially offsets the declining value per unit.
+
+REGIME 2 — CAP BINDING
+
+    N_t^post = N^pool.
+
+Once the pool is exhausted, no additional collateral can be posted.
+
+Further deterioration in P_t therefore directly reduces collateral coverage.
+
+This is the central reason the amount of collateral available at tau depends
+on the PRE-DEFAULT credit path.
+
+Do not first state:
+
+    B_t^post ≈ V_t/q_CSA
+
+as though sufficient collateral is always available and introduce the cap only
+later.
+
+The cap should be present in the first mathematical statement of the
+collateral-posting mechanism.
+
+======================================================================
+9. KEEP VM TERMINOLOGY PRECISE
+======================================================================
+
+Do not describe VM itself as “the derivative.”
+
+Let:
+
+    V_t
+
+denote the dealer-side derivative MtM/value.
+
+Under the simplified CSA mechanics this determines the cash-equivalent VM
+requirement.
+
+Variation margin is the collateral called/transferred as a consequence of the
+derivative valuation under the CSA.
+
+A concise formulation is sufficient, for example:
+
+    “Let V_t > 0 denote the dealer-side derivative MtM, which determines the
+     cash-equivalent VM requirement under the simplified CSA mechanics
+     considered here.”
+
+Do not over-explain this point.
+
+======================================================================
+10. CLARIFY THE TWO PATHS TO THE EVENT
+======================================================================
+
+Retain the useful distinction between:
+
+PATH I:
+    gradual sovereign deterioration causes the collateral pool cap to become
+    binding before the loss-trigger event;
+
+PATH II:
+    a sufficiently discontinuous jump/default/restructuring occurs while
+    unused collateral remains in the pool.
+
+But state the modeling conclusion explicitly.
+
+These are NOT two competing methodologies that are arbitrarily chosen.
+
+Nor should unsupported probabilities be assigned to them.
+
+In a full stochastic methodology, they are endogenous outcomes of the SAME
+simulated process:
+
+    sovereign credit path
+        ->
+    P_t
+        ->
+    N_t^post
+        ->
+    tau
+        ->
+    B_tau^uw
+        ->
+    E_tau.
+
+Some simulated paths deteriorate enough before tau that:
+
+    N_{tau-}^post = N^pool.
+
+Others reach the event while:
+
+    N_{tau-}^post < N^pool.
+
+Their relative frequency/probability should therefore emerge from the modeled
+credit/bond-price/default dynamics.
+
+For a simplified first implementation or worked example, it is acceptable to
+show:
+
+    - cap-bound scenario;
+    - jump-from-current-posting scenario;
+
+as scenario/bounding calculations.
+
+If this is what the current implementation does, state it explicitly.
+
+Do NOT average the two using unsupported scenario probabilities.
+
+Do NOT imply that the event at tau itself causes the unused collateral pool to
+become posted.
+
+If the full N^pool enters a default-state scenario, it must be because either:
+
+    (a) the cap became binding BEFORE tau; or
+    (b) transaction documents establish that the entire pool is legally
+        available to satisfy the dealer claim irrespective of CSA VM calls.
+
+======================================================================
+11. REMOVE THE STATIC-HAIRCUT COMPARISON FROM THE OPENING
+======================================================================
+
+Remove the current opening subsection/paragraph:
+
+    “What this changes relative to a static-haircut treatment.”
+
+It interrupts the conceptual flow and is no longer needed to motivate the
+methodology.
+
+If useful, retain one short comparison later, preferably in the implementation
+or model-risk discussion:
+
+    a static haircut applied to performing bond MTM can be viewed as a
+    reduced-form approximation, but it does not explicitly model the transition
+    from performing collateral value to event-state collateral value.
+
+Do not let comparison with the old methodology drive the paper.
+
+======================================================================
+12. PRESERVE THE DERIVATIVE UNWIND ANALYSIS, BUT SUBORDINATE IT TO CVA
+======================================================================
+
+Retain the important distinction:
+
+    V_{tau-}
+        versus
+    V_tau^uw.
+
+The derivative claim may need to be revalued on the appropriate
+default-state/unwind basis rather than simply carrying forward the normal-state
+valuation.
+
+However, this is one component of:
+
+    E_tau = (V_tau^uw - B_tau^uw)^+,
+
+not the organizing principle of the paper.
+
+Keep any duration-based approximation clearly illustrative.
+
+For example:
+
+    V_tau^uw
+      ≈
+    V_{tau-} exp[-(r_base,def-r_base)D]
+
+may be used as an illustrative approximation only.
+
+The production methodology should revalue the transaction pathwise under the
+specified unwind/default-state valuation basis where possible.
+
+Do not generalize the sign of the effect of widening the unwind valuation
+spread. In the current asset-side positive-duration example it reduces V^uw
+and therefore CVA, but this is cash-flow-structure dependent.
+
+======================================================================
+13. PRESERVE RECOVERY/LGD NON-DUPLICATION
+======================================================================
+
+Keep clearly separate:
+
+    recovery/restructuring modeling
+        ->
+    determines B_tau^uw;
+
+and:
+
+    counterparty LGD
+        ->
+    applies to the residual unsecured derivative counterparty claim after
+    collateral has been credited.
+
+Thus:
+
+    R_eff
+
+and:
+
+    LGD
+
+are different objects.
+
+Do not apply the same recovery effect twice through both collateral valuation
+and counterparty LGD.
+
+If LGD ≈ 1 is retained for the limited-recourse Repack vehicle, keep it
+conditional on documentary confirmation of waterfall, ranking, guarantees and
+recourse provisions.
+
+======================================================================
+14. KEEP WRONG-WAY RISK, BUT EXPRESS IT THROUGH THE CORE MODEL
+======================================================================
+
+Retain the distinction between:
+
+PRE-DEFAULT DEPENDENCE:
+
+    sovereign deterioration
+        ->
+    P_t falls
+        ->
+    N_t^post changes
+        ->
+    collateral coverage changes;
+
+and:
+
+EVENT-STATE STRUCTURAL DEPENDENCE:
+
+    the same sovereign default/restructuring event
+        ->
+    triggers derivative unwind
+        AND
+    impairs the collateral.
+
+The latter is structural rather than merely a statistical correlation between
+two independent events.
+
+However, do not imply that this eliminates stochastic modeling.
+
+The joint behavior of:
+
+    P_t,
+    V_t,
+    N_t^post,
+    cap-exhaustion timing,
+    tau,
+    V_tau^uw,
+    B_tau^uw
+
+remains stochastic.
+
+======================================================================
+15. KEEP MPOR AS AN IMPLEMENTATION REFINEMENT
+======================================================================
+
+Retain the important security-collateral point:
+
+    quantity freezes; value does not.
+
+At the last collateral call before default/unwind, the bond quantity posted is
+fixed over the MPOR, while its market value can continue to evolve.
+
+This differs from treating collateral as a frozen cash amount.
+
+However, MPOR should not interrupt the main derivation.
+
+Present it after the central CVA, collateral-quantity, recovery and unwind
+framework has been established.
+
+Keep any finding about the existing implementation freezing collateral value
+tagged as [IMPL] pending confirmation.
+
+======================================================================
+16. VERIFY q_CSA AND ALL EXAMPLE INPUTS
+======================================================================
+
+The latest draft uses:
+
+    q_CSA = 90% [DOC],
+
+whereas an earlier revision used 85%.
+
+Verify the correct contractual CSA valuation percentage against Appendix C /
+the underlying transaction documentation.
+
+Do not silently change documentary/example inputs.
+
+If 90% is now established from better documentary evidence, state/source that.
+
+If not, retain the value actually supported by the documents and flag any
+uncertainty.
+
+Any change in q_CSA propagates into:
+
+    B_0^post,
+    N_0^post,
+    the cap-binding price,
+    headroom,
+    and the worked-example exposures.
+
+Perform the same consistency check for:
+
+    V_0,
+    P_0,
+    B_0^pool,
+    N^pool,
+    index ratio / index-adjusted principal,
+    V_tau^uw,
+    r_base,
+    r_base,def,
+    R_eff,
+    LGD,
+    and MPOR.
+
+======================================================================
+17. KEEP NOMINAL FACE VS INDEX-ADJUSTED PRINCIPAL EXPLICIT
+======================================================================
+
+The illustrative collateral is inflation-linked.
+
+Do not silently treat nominal face and index-adjusted redemption principal as
+the same object.
+
+State explicitly whether:
+
+    N^pool,
+    N_t^post,
+    and R_eff
+
+are defined per unit of nominal face or per unit of index-adjusted principal.
+
+If the bond's redemption claim accretes with an index ratio, explain how that
+enters B_tau^uw.
+
+This matters materially for the break-even recovery calculation and should
+remain an explicit calibration/modeling choice until confirmed.
+
+======================================================================
+18. REWORK THE WORKED EXAMPLE AROUND THE CORE EQUATION
+======================================================================
+
+The worked example should illustrate:
+
+    E_tau = (V_tau^uw - B_tau^uw)^+.
+
+Start by showing the current/pre-default state:
+
+    V_0,
+    P_0,
+    q_CSA,
+    N^pool,
+    N_0^post,
+    remaining pool headroom.
+
+Then show the two pre-event scenarios:
+
+    Path I — cap becomes binding before tau:
+        N_{tau-}^post = N^pool.
+
+    Path II — jump/event occurs before cap binds:
+        N_{tau-}^post < N^pool.
+
+For each scenario, calculate B_tau^uw under clearly identified R_eff/recovery
+assumptions and compare with V_tau^uw.
+
+Do not introduce q_disp in the baseline table if q_disp = 1.
+
+If a disposal-friction case is useful, put it in a separate sensitivity row or
+subsection rather than making q_disp appear to be a fundamental CVA parameter.
+
+The reader should immediately see why the pre-default path matters:
+
+    it determines N_{tau-}^post,
+    which changes B_tau^uw,
+    which changes E_tau.
+
+======================================================================
+19. REVISIT THE BREAK-EVEN RECOVERY PRESENTATION
+======================================================================
+
+Under the reduced-form baseline:
+
+    B_tau^uw ≈ R_eff N_{tau-}^post,
+
+the break-even recovery is simply:
+
+    R_eff^*
+      =
+    V_tau^uw / N_{tau-}^post,
+
+subject to the chosen face/principal denomination.
+
+This is a useful diagnostic.
+
+Show explicitly that the threshold changes depending on:
+
+    - whether the cap has bound;
+    - the pathwise N_{tau-}^post;
+    - the unwind value V_tau^uw;
+    - nominal versus index-adjusted principal.
+
+Do not present a single break-even recovery number as an intrinsic property of
+the transaction.
+
+If disposal friction is introduced as a sensitivity, the corresponding
+q_disp-adjusted threshold may be shown separately rather than built into the
+baseline formula.
+
+======================================================================
+20. KEEP THE MAIN DOCUMENT LIGHT; USE APPENDICES FOR SUPPORT
+======================================================================
+
+The revision should be shorter or no longer than the current draft unless
+additional length is genuinely necessary.
+
+The MAIN BODY should establish:
+
+    CVA
+        ->
+    E_tau
+        ->
+    (V_tau^uw - B_tau^uw)^+
+
+and then explain:
+
+    N_{tau-}^post,
+    B_tau^uw,
+    V_tau^uw,
+    pathwise integration/default probability,
+    and implementation.
+
+Detailed supporting material belongs in appendices:
+
+APPENDIX A:
+    Laurent recovery-scheme literature:
+    RMV, RT, RFV and their pricing implications.
+
+APPENDIX B:
+    Greek empirical evidence:
+    prolonged deterioration, restructuring mechanics, recovery/value measures,
+    and what the evidence does and does not establish.
+
+APPENDIX C:
+    transaction-specific documentary evidence:
+    CSA valuation percentage, collateral pool, unwind trigger, legal
+    availability of collateral, disposal-agent mechanics, waterfall/recourse.
+
+APPENDIX D:
+    existing CVA engine and implementation mapping.
+
+APPENDIX E:
+    regulatory context.
+
+Do not let the literature review, Greek case, regulatory treatment or
+implementation details drive the main-document structure.
+
+They support the methodology; they are not the methodology.
+
+======================================================================
+21. FINAL CONSISTENCY PASS
+======================================================================
+
+After restructuring the paper, perform a full consistency review across every
+equation, table, worked example and conclusion.
+
+In particular verify:
+
+TIMING
+
+    t < tau       pre-default/distress state
+    tau-          collateral quantity immediately before event
+    tau           loss-trigger / derivative unwind state
+    tau+epsilon   only if a separate disposal process is explicitly modeled
+
+NOTATION
+
+    V_t               derivative MtM
+    N^pool            available collateral pool principal/notional
+    N_t^req           CSA-required principal/notional
+    N_t^post          actually posted principal/notional
+    P_t               pre-default bond price
+    V_tau^uw          derivative unwind value
+    B_tau^uw          collateral value available against unwind claim
+    R_eff             effective event-state/restructuring value per unit face
+    q_CSA             contractual CSA valuation percentage
+    LGD               residual counterparty loss severity
+
+Avoid unnecessary intermediate symbols.
+
+CORE MODEL
+
+    N_t^post
+      =
+    min(
+        V_t/(q_CSA P_t),
+        N^pool
+    )
+
+    B_tau^uw
+      =
+    recovery/restructuring valuation of N_{tau-}^post
+
+and, under the reduced-form baseline,
+
+    B_tau^uw
+      ≈
+    R_eff N_{tau-}^post
+
+followed by
+
+    E_tau
+      =
+    (V_tau^uw - B_tau^uw)^+
+
+and
+
+    CVA_0
+      =
+    LGD sum_i DF(0,t_i) E[E_ti] Delta S_i.
+
+The expectation must remain pathwise inside the positive part.
+
+Delta S_i is the marginal probability of the MODELED LOSS-TRIGGER EVENT, not
+casually the collateral issuer's probability or derivative counterparty's
+default probability without reference to C2.
+
+======================================================================
+22. TARGET QUALITY OF THE FINAL REVISION
+======================================================================
+
+The final paper should feel like ONE MODEL progressively decomposed:
+
+    What is CVA?
+        ->
+    What is exposure at the relevant event?
+        ->
+    What are the derivative and collateral worth at that event?
+        ->
+    How much collateral got there?
+        ->
+    How do we model its restructuring/default value?
+        ->
+    How do we integrate this pathwise over default probability?
+        ->
+    How do we implement it in the existing engine?
+
+A reader should not need to remember several pages of transaction mechanics
+before discovering how they enter CVA.
+
+Preserve the technically valuable material already developed, but remove
+notation and stages that do not materially contribute to the baseline model.
+
+In particular, the preferred conceptual backbone is:
+
+    sovereign credit evolution
+        ->
+    P_t and V_t
+        ->
+    N_t^post = min(N_t^req, N^pool)
+        ->
+    loss-trigger event tau
+        ->
+    V_tau^uw and B_tau^uw
+        ->
+    E_tau = (V_tau^uw - B_tau^uw)^+
+        ->
+    CVA.
+
+Use this backbone consistently in the introduction, methodology, worked
+example, implementation mapping and conclusion.
