@@ -1,0 +1,721 @@
+Please revise the latest version of the white paper “CVA for Non-Cash VM” based on the review comments below.
+
+This should be a substantive refinement of the existing draft, not a complete rewrite. Preserve the strong parts of the current version: the first-principles framing, running example, separation from the companion FVA/ColVA paper, pathwise CVA formulation, implementation mapping, MPOR discussion, and concise regulatory appendix.
+
+The final paper should read as a clean methodology paper rather than an investigative notebook. The main body should establish the economic logic in a natural sequence. Detailed literature discussion, empirical evidence, implementation investigation, regulatory background, and unresolved documentary evidence should be moved to appendices where possible.
+
+The central economic question is:
+
+    What collateral value is actually available to offset the derivative close-out claim in the loss-relevant default/unwind state?
+
+Build the paper around that question.
+
+============================================================
+1. CLEAN UP NOTATION
+============================================================
+
+Do not use F for bond face value because F can naturally be confused with funding/FVA.
+
+Use:
+
+V_t              derivative value / cash-equivalent VM requirement
+V_tau^co         derivative close-out value in the loss-trigger state
+
+B_t^pool         market value of the total bond collateral pool
+B_t^posted       market value of bond actually posted/delivered under the CSA
+
+N_pool           total bond face/notional available in the collateral pool
+N_t^posted       face/notional amount of bond actually posted at time t
+
+P_t              bond market price per unit of face/notional, where useful
+
+q_CSA            CSA valuation percentage
+
+B_tau^def        market value of posted collateral in the default/restructuring state
+B_tau^real       amount ultimately realizable by the dealer
+
+R_iss            issuer recovery parameter where a reduced-form recovery convention is used
+
+q_liq            separate realization/liquidity adjustment, only if economically justified and not already embedded in B_tau^def
+
+S(t)             survival probability of the modeled loss-trigger event
+LGD              residual loss severity on the derivative counterparty claim after collateral
+delta            MPOR, with units stated explicitly
+
+Keep repo, repo haircut/capacity, funding variables and FVA mechanics out of the CVA methodology. Refer readers to the companion FVA/ColVA paper where appropriate.
+
+============================================================
+2. REFRAME THE STRUCTURAL CONDITIONS C1–C3
+============================================================
+
+Retain C1 and C2 conceptually:
+
+C1. VM is a security rather than cash, so its market value is stochastic and can be strongly dependent on issuer credit quality.
+
+C2. Under the assumed transaction mechanics, default/restructuring of the collateral issuer/bond is the economically relevant loss-trigger event because it triggers termination/unwind of the Repack swap.
+
+Make clear that C2 is transaction-specific and must be verified against the relevant transaction documents. Do not write “SPV default = bond issuer default” or “SPV credit curve = issuer credit curve.”
+
+Rewrite C3.
+
+Do NOT simply state that the €51m bond pool is structurally overcollateralized relative to the derivative and therefore the entire €51m automatically protects the dealer.
+
+Instead explain the collateral dynamics.
+
+At each pre-default time:
+
+    B_t^posted
+      = min(V_t / q_CSA, B_t^cap)
+
+and equivalently, for a single bond collateral pool,
+
+    N_t^posted
+      = min(N_t^required, N_pool)
+
+where approximately
+
+    N_t^required = V_t / (q_CSA P_t)
+
+subject to the exact contractual mechanics.
+
+As the sovereign/bond deteriorates:
+
+    P_t ↓
+      => N_t^required ↑
+      => progressively more bond notional may be called as VM.
+
+Eventually the available collateral cap may bind:
+
+    N_t^posted = N_pool.
+
+This is an important Repack-specific mechanism.
+
+The current example has approximately:
+
+    V_0 = €25.16m
+    q_CSA = 85%
+    B_0^pool = €44.41m
+    N_pool = €51m
+
+so current required bond market value is approximately:
+
+    V_0 / q_CSA = €29.60m,
+
+which is less than the full pool market value.
+
+Therefore the full €51m is NOT automatically the amount posted today.
+
+However, in a gradual sovereign deterioration scenario, falling bond prices can cause progressively more of the pool to be posted, potentially reaching:
+
+    N_tau-^posted = N_pool = €51m
+
+before the contractual default/restructuring event.
+
+Use the Greek sovereign crisis as empirical motivation for why gradual deterioration before restructuring is economically plausible: severe sovereign distress and bond-price deterioration can precede the contractual restructuring/default event for a substantial period.
+
+Also acknowledge jump-to-default risk. A sufficiently discontinuous default can occur before the collateral cap is reached, in which case:
+
+    N_tau-^posted < N_pool.
+
+Therefore €51m should enter the worked default example only as an explicit “collateral cap binding immediately prior to default” assumption, unless the transaction documents establish that the entire collateral pool is legally pledged/available to the dealer irrespective of CSA VM calls.
+
+Distinguish carefully between:
+(a) the total SPV asset/collateral pool,
+(b) collateral actually posted under the CSA, and
+(c) assets legally available to satisfy the dealer close-out claim.
+
+============================================================
+3. REWRITE SECTION 2.1 AROUND PRE-DEFAULT VS DEFAULT-STATE COLLATERAL
+============================================================
+
+The key point of §2.1 should NOT be merely:
+
+    B_tau- > V_tau-
+
+because of “structural overcollateralization.”
+
+Instead explain:
+
+VM mechanics are intended to keep the performing exposure collateralized. With q_CSA < 1,
+
+    B_t^posted ≈ V_t / q_CSA > V_t
+
+while sufficient collateral remains available.
+
+Therefore a naïve calculation such as
+
+    (V_tau- - B_tau-^posted)^+
+
+will often be approximately zero.
+
+But this does NOT establish that default-state exposure is zero.
+
+The economically relevant exposure is:
+
+    E_tau
+      = (V_tau^co - B_tau^real)^+.
+
+The central modeling problem is therefore the transition:
+
+    pre-default collateral state
+        ->
+    default/restructuring collateral value
+        ->
+    realizable collateral value.
+
+Make the distinction between tau- and tau visually and conceptually clear.
+
+============================================================
+4. PRESENT THE CORE CVA ARCHITECTURE IN THREE STAGES
+============================================================
+
+Organize the collateral methodology around:
+
+    credit-state-dependent pre-default bond MTM
+        ->
+    explicit contractual unwind/default trigger
+        ->
+    post-default/restructuring liquidation value.
+
+More operationally:
+
+    P_t
+      ->
+    N_tau-^posted
+      ->
+    B_tau^def
+      ->
+    B_tau^real.
+
+Stage 1 — Pre-default collateral dynamics / CSA mechanics
+
+Model the bond's market value as sovereign credit quality deteriorates and determine how much bond notional has actually been posted immediately before the event.
+
+Do not assume the bond remains near par until default.
+
+Stage 2 — Default/restructuring-state bond valuation
+
+Define generally:
+
+    B_tau^def
+      = R_function(
+            N_tau-^posted,
+            P_tau-,
+            bond contractual terms,
+            sovereign/default state,
+            recovery/restructuring assumptions
+        ).
+
+Do NOT make RFV part of the fundamental definition of the CVA methodology.
+
+RFV should be presented as one tractable implementation of this more general object.
+
+Stage 3 — Realization
+
+If there are genuine incremental liquidation/disposal effects not already captured in the default-state market value:
+
+    B_tau^real = q_liq B_tau^def.
+
+However, if B_tau^def is calibrated from CDS auction prices, distressed/defaulted bond market prices, or market values of restructuring consideration that already incorporate realization/liquidity effects, baseline q_liq should normally be 1 to avoid double counting.
+
+============================================================
+5. DEFAULT/RESTRUCTURING BOND VALUATION: KEEP MAIN BODY SIMPLE
+============================================================
+
+In the main methodology, state that several recovery/default-value conventions are possible and that the selected convention is a modeling/calibration choice.
+
+For the practical baseline, consider the reduced-form approximation:
+
+    B_tau^def ≈ R_eff N_tau-^posted,
+
+where R_eff is NOT necessarily interpreted as a literal cash recovery payment.
+
+Define R_eff more generally as:
+
+    effective market value of the recovery/restructuring consideration
+    per unit of old bond face/notional at the relevant unwind/liquidation time.
+
+Thus economically:
+
+    B_tau^def
+      = MV_tau(
+            new bonds
+            + cash/cash-like consideration
+            + contingent claims
+            + other restructuring proceeds
+        )
+
+may be approximated by:
+
+    R_eff N_tau-^posted.
+
+This gives the model a tractable RFV-like implementation without claiming that actual sovereign restructurings literally pay a fixed percentage of face in cash.
+
+Do not state that empirical evidence proves RFV is universally correct.
+
+============================================================
+6. PUT THE DETAILED RECOVERY LITERATURE IN AN APPENDIX
+============================================================
+
+Add an appendix reviewing only the recovery literature relevant to the modeling choice.
+
+Use Laurent et al., “Sovereign Recovery Schemes: Discounting and Risk Management Issues.”
+
+Accurately describe ALL THREE recovery schemes analyzed by Laurent:
+
+A. Fractional Recovery of Market Value (RMV)
+
+Recovery at default is proportional to immediately pre-default market value:
+
+    recovery ~ R × B_tau-.
+
+Explain its pricing implications and why it is mathematically convenient.
+
+Explain why it is not necessarily the most natural empirical description of a sovereign restructuring in which old claims are exchanged for a package whose value is substantially related to the old claim's principal rather than simply a fraction of its last traded price.
+
+B. Fractional Recovery of Treasury / cash-flow recovery (RT)
+
+Recovery is linked to a proportional recovery of the remaining contractual/default-free cash-flow value.
+
+Explain the corresponding pricing interpretation and why it resembles proportional recovery of the remaining promised claim more than an exchange into a materially different restructuring package.
+
+C. Fractional Recovery of Face Value / Par (RFV/FRP)
+
+Recovery attaches to principal/face value while unpaid future coupons do not receive the same recovery claim.
+
+Explain Laurent's important result that this creates different effective risky discounting for principal and coupons.
+
+Under RFV/FRP, a single conventional risky/Z-spread curve applied indiscriminately to principal and coupon cashflows is generally inconsistent with the recovery economics.
+
+Be precise: this does NOT mean that two independently calibrated sovereign default/hazard processes are required.
+
+A common hazard/survival process combined with different recovery treatment for principal and coupon can generate the required economics.
+
+Also make clear that Laurent's principal-versus-coupon discounting result concerns PRE-DEFAULT pricing of a defaultable bond. It must not be confused with the separate CVA question of determining the market/realization value of collateral at the unwind/default event.
+
+State clearly what Laurent actually concludes and distinguish the paper's theoretical/modeling conclusions from our own choice of approximation.
+
+Do not attribute conclusions from the Greek empirical paper to Laurent or vice versa.
+
+============================================================
+7. GREEK RESTRUCTURING EVIDENCE — APPENDIX, NOT CORE METHODOLOGY
+============================================================
+
+Use Zettelmeyer, Trebesch & Gulati, “The Greek Debt Restructuring: An Autopsy,” as empirical evidence and a model-risk/calibration discussion, not as the theoretical source of RMV/RT/RFV.
+
+Explain the following points carefully:
+
+1. Sovereign distress can precede contractual restructuring/default for a substantial period.
+
+This supports modeling credit-state-dependent pre-default collateral MTM and the possibility that falling bond prices cause progressively more collateral notional to be posted before default.
+
+2. The 2012 Greek restructuring was not literally an RFV cash recovery.
+
+Old bonds were exchanged for a package including new Greek bonds, EFSF instruments and GDP-linked securities.
+
+Therefore actual default/restructuring value is more naturally understood as:
+
+    market value of restructuring consideration.
+
+3. The Greek experience is qualitatively informative when comparing stylized recovery conventions.
+
+Explain carefully, and only to the extent supported by the papers, whether the observed restructuring mechanics and convergence of distressed bond prices are more consistent with a face/principal-based recovery intuition than RMV or proportional recovery of original contractual cashflows.
+
+Do not overstate this as proof of RFV.
+
+4. Keep all empirical quantities distinct:
+
+    pre-restructuring distressed bond price
+    nominal face-value haircut
+    PV/economic haircut
+    market value of restructuring package
+    CDS auction Final Price (21.5)
+
+Do not use these interchangeably.
+
+Explain that Zettelmeyer et al.'s approximately 59–65% PV haircut is an economic loss measure obtained by comparing old and new claims on a comparable valuation basis. It is not the same quantity as the approximately 21–23 value of restructuring consideration per 100 old principal.
+
+For CVA collateral liquidation, the latter type of quantity — market value realizable from the restructuring/defaulted security — is conceptually closer to B_tau^def/B_tau^real than the PV haircut statistic.
+
+Do not use the paper's hypothetical 70% haircut as q_liq or as a universal sovereign recovery assumption.
+
+============================================================
+8. KEEP DERIVATIVE CLOSE-OUT VALUATION SEPARATE
+============================================================
+
+Preserve the distinction among:
+
+1. issuer survival/default dynamics:
+       S(t), hazard/default curve
+
+2. derivative close-out valuation:
+       V_tau^co
+
+3. collateral default/restructuring valuation:
+       B_tau^def
+
+4. residual counterparty LGD:
+       LGD.
+
+The issuer CDS/default curve determines the probability/timing of the modeled event. It is not the discount curve used to value the derivative.
+
+The current illustrative assumption:
+
+    r_base     = RFR + 3bp
+    r_base,def = RFR + 200bp
+
+belongs to determining V_tau^co, not to the Laurent recovery treatment of the collateral bond.
+
+Do not confuse Laurent's principal/coupon risky discounting result with r_base versus r_base,def.
+
+Keep the duration approximation:
+
+    V_tau^co
+      ≈ V_tau- exp[-(r_base,def-r_base)D]
+
+only as an illustrative approximation.
+
+State that production methodology should revalue the transaction pathwise under the specified default-state close-out basis.
+
+Substantiate or explicitly label RFR + 200bp as an assumption requiring calibration/validation.
+
+Avoid a general statement that a wider default-state spread always reduces CVA. That conclusion is specific to the asset-side cash-flow structure in the example.
+
+============================================================
+9. TERMINATION AND LOSS DEFINITION
+============================================================
+
+Make clear that if collateral issuer default contractually triggers termination:
+
+    issuer default
+       ->
+    transaction terminates
+       ->
+    close-out amount V_tau^co is determined
+       ->
+    collateral is realized
+       ->
+    residual unsecured claim generates CVA loss.
+
+Do not count disappearance of future swap cashflows separately as a credit loss if those cashflows are already reflected in the close-out amount.
+
+C2 remains a [CONFIRM] item until supported by the relevant Programme Master Conditions / termination provisions.
+
+============================================================
+10. CVA FORMULA
+============================================================
+
+Use the general pathwise expression:
+
+    CVA_0
+      = LGD Σ_i DF(0,t_i)
+          E[(V_ti^co - B_ti^real)^+]
+          ΔS_i
+
+where ΔS_i is the marginal probability of the modeled loss-trigger event.
+
+Avoid casually calling ΔS_i “counterparty default probability” when the model is using collateral-issuer default as the event under the assumed C2 linkage.
+
+Keep the expectation inside the positive part and preserve the existing production engine's pathwise netting.
+
+============================================================
+11. UPDATE THE RUNNING NUMERICAL EXAMPLE
+============================================================
+
+Keep the running-example style, but explicitly distinguish:
+
+    N_pool = €51m
+
+from:
+
+    N_0^posted.
+
+With:
+
+    V_0 = €25.16m
+    q_CSA = 85%
+    B_0^pool = €44.41m
+
+the required current collateral market value is approximately:
+
+    €25.16m / 0.85 = €29.60m.
+
+Therefore do not imply that €51m face is necessarily posted today.
+
+For the default-state worked example using the full €51m notional, state explicitly:
+
+    ASSUMPTION: sovereign deterioration before default has caused the CSA collateral cap to bind, so N_tau-^posted = N_pool = €51m.
+
+Then, under the simple effective face-value approximation:
+
+    B_tau^def = R_eff × €51m.
+
+Retain the 40% and approximately 22% cases only if their interpretations are stated precisely.
+
+40% should be described as an illustrative conventional recovery assumption, not automatically “the correct CDS recovery.”
+
+Approximately 22% should be described as a Greece-inspired realized/restructuring-value scenario, not a universal sovereign recovery rate.
+
+If q_liq = 1 is used in the base case, explain why.
+
+If q_liq = 0.70 is retained as a sensitivity, label it explicitly as an additional realization discount and explain that it must not be used when R_eff already represents market liquidation/restructuring value.
+
+Update the break-even recovery formula to:
+
+    R_eff*
+      = V_tau^co / (q_liq N_tau-^posted).
+
+Under the explicit cap-binding assumption N_tau-^posted = €51m, the existing approximately 38.9% result may remain.
+
+But make clear that the break-even recovery changes pathwise if N_tau-^posted < N_pool.
+
+This is an important model-risk/sensitivity point.
+
+============================================================
+12. WRONG-WAY RISK
+============================================================
+
+Retain the concept of structural wrong-way risk but sharpen it.
+
+There are two related mechanisms:
+
+A. Pre-default collateral deterioration:
+
+    sovereign credit deterioration
+      -> bond price falls
+      -> more bond quantity is required under CSA
+      -> N_t^posted rises
+      -> eventually collateral cap may bind.
+
+This collateral-call mechanism partially mitigates declining bond value until the pool is exhausted.
+
+B. Default-state dependence:
+
+If the same issuer-default/restructuring event both triggers swap unwind and impairs the collateral bond, the loss-trigger event and collateral impairment are structurally linked.
+
+This is not merely a statistical correlation assumption.
+
+However, do not claim that this eliminates all stochastic dependence/modeling issues. V_tau^co, P_tau-, timing of cap exhaustion, jump-to-default behavior and residual counterparty exposure may still be jointly stochastic.
+
+============================================================
+13. MPOR
+============================================================
+
+Retain MPOR as a first-class feature because the existing engine already supports it.
+
+For non-cash VM, distinguish cash collateral mechanics from security collateral mechanics:
+
+    quantity freezes; value does not.
+
+At the last margin call, the amount/quantity of bond posted is fixed over MPOR, but its market value continues to evolve.
+
+Represent schematically:
+
+    B_tau+delta^posted
+      = N_tlast^posted P_tau+delta
+
+rather than freezing the collateral market value itself.
+
+Explain that the current implementation may need extension if it currently freezes only the collateral-driving portfolio value.
+
+Treat this as an implementation point requiring confirmation, not an established code defect.
+
+Explicit joint modeling of ordinary short-horizon bond evolution plus default jump during MPOR can be identified as a later refinement if it is not first-order for the current example.
+
+============================================================
+14. RESIDUAL LGD
+============================================================
+
+Keep R_eff/R_iss completely separate from derivative-counterparty LGD.
+
+R_eff/R_iss determines the value of the collateral bond after issuer default/restructuring.
+
+LGD applies only to the residual unsecured derivative claim after collateral realization.
+
+The current assumption LGD ≈ 1 may be reasonable for a limited-recourse Repack SPV only if the waterfall, ranking, guarantees and recourse provisions establish that little or no additional value remains after the collateral pool is realized.
+
+Keep this as [CONFIRM] unless supported by transaction documents.
+
+Also confirm that the production engine's recovery convention is consistent with survival-curve calibration and does not introduce a second recovery adjustment.
+
+============================================================
+15. IMPLEMENTATION MAPPING
+============================================================
+
+Preserve the useful conclusion from the current draft:
+
+    the existing pathwise CVA machinery is broadly usable;
+    the key extension is the economic/state representation of non-cash collateral.
+
+The production engine already provides:
+- pathwise MtM cubes,
+- pathwise netting,
+- default-probability weighting,
+- recovery application,
+- timing grid / MPOR machinery.
+
+Do not describe the issue merely as “parameterization is the problem.”
+
+State more neutrally that the current implementation represents collateral through a collateral-driving portfolio/scalar mechanism, while non-cash sovereign collateral requires the collateral leg to reflect credit-state-dependent bond value and default/restructuring-state realization.
+
+Explain how the proposed B_tau^def / B_tau^real treatment would map into the collateral-driving cube.
+
+Retain the historical kappa sensitivity only as an implementation diagnostic. Explain that:
+
+    kappa × performing bond MV
+
+is a reduced-form approximation to default-state collateral valuation, not the preferred economic methodology.
+
+Do not present increasing kappa and obtaining near-zero CVA as evidence that economic risk has disappeared.
+
+Resolve or explicitly flag the unexplained reported relationship:
+
+    828,314 / 248,494 = 3.3333 = 1/(1-0.70).
+
+Do not speculate in the final methodology if the source of this transformation remains unknown.
+
+============================================================
+16. REGULATORY MATERIAL — APPENDIX ONLY
+============================================================
+
+Keep the regulatory appendix brief.
+
+Clearly separate:
+
+- regulatory obligation to exchange VM,
+- CSA contractual collateral mechanics,
+- regulatory CCR recognition/haircuts,
+- economic/default-state collateral valuation for pricing CVA.
+
+Do not import regulatory VM or CCR supervisory haircuts into the economic CVA collateral valuation.
+
+If the Repack SPV is exempt from mandatory regulatory VM, treat that as a transaction-specific legal/regulatory conclusion and do not infer it merely from SPV status.
+
+Use the EBA Repack Q&A only for its actual regulatory proposition: Repack derivatives can generate CCR and collateral recognition for capital is subject to the applicable eligibility requirements.
+
+============================================================
+17. PRESENTATION / STRUCTURE
+============================================================
+
+The final paper should be easy to read in this order:
+
+1. Executive summary / purpose
+2. Transaction setup and notation
+3. Why cash-VM CVA treatment is insufficient for sovereign bond VM
+4. Pre-default collateral dynamics and CSA quantity
+5. Loss-trigger/default event and derivative close-out
+6. Default/restructuring-state collateral valuation
+7. Pathwise CVA formulation
+8. Worked numerical example
+9. Implementation in the existing CVA engine
+10. Key assumptions, sensitivities and model limitations
+11. Conclusion / recommended methodology
+
+Then appendices:
+
+A. Laurent recovery-model literature:
+   RMV / RT / RFV-FRP and pricing implications
+
+B. Greek restructuring empirical evidence:
+   distress path, restructuring mechanics, PV haircut versus realized package value, CDS auction price, and implications for calibration/model risk
+
+C. Transaction-specific contractual evidence:
+   CSA, collateral cap, termination linkage, disposal agent, waterfall/recourse
+
+D. Implementation details:
+   multi-CSA representation, kappa history, MPOR implementation, unresolved reported numbers
+
+E. Regulatory context:
+   margin rules versus CSA versus CCR recognition versus economic CVA
+
+Avoid “Trap 1,” “Trap 2,” “What not to say,” or argumentative/investigative language in the main paper. Convert these into neutral methodology statements or model-risk observations.
+
+============================================================
+18. CLEARLY IDENTIFY WHAT IS FACT, MODEL CHOICE, AND OPEN ITEM
+============================================================
+
+Throughout the paper distinguish:
+
+ESTABLISHED ECONOMIC/MODELING PRINCIPLE
+- CVA depends on collateral value in the loss-relevant state.
+- Performing-state collateral value is not sufficient when collateral itself can default.
+- recovery/default-state collateral valuation must not be double counted.
+
+MODELING CHOICE
+- selected sovereign credit dynamics,
+- recovery convention,
+- R_eff calibration,
+- default-state close-out curve/basis,
+- q_liq if any,
+- MPOR approximation.
+
+TRANSACTION-SPECIFIC FACT REQUIRING DOCUMENTARY SUPPORT
+- issuer default/restructuring triggers swap termination (C2),
+- exact CSA collateral-call/cap mechanics,
+- whether entire collateral pool is pledged/available to dealer,
+- waterfall/ranking/recourse,
+- Disposal Agent mechanics.
+
+IMPLEMENTATION CONFIRMATION
+- how the collateral-driving cube is generated,
+- whether bond quantity or value freezes during MPOR,
+- recovery/LGD application,
+- unexplained 1/(1-0.70) reported transformation.
+
+Do not silently convert any [CONFIRM] item into a fact.
+
+============================================================
+19. FINAL METHODOLOGY MESSAGE
+============================================================
+
+The paper should ultimately communicate the following logic cleanly:
+
+The CVA problem is not solved by applying a static haircut to the performing market value of the sovereign bond.
+
+Instead:
+
+    sovereign credit state
+        ->
+    pre-default bond MTM
+        ->
+    CSA determines quantity of bond posted
+        ->
+    contractual loss-trigger event occurs
+        ->
+    derivative is revalued to V_tau^co
+        ->
+    posted bond is valued under an explicit
+    default/restructuring recovery model
+        ->
+    any genuinely separate realization effect is applied
+        ->
+    residual positive exposure generates CVA.
+
+The compact mathematical representation is:
+
+    N_t^posted
+      = min(N_t^required, N_pool)
+
+    B_tau^def
+      = R_function(N_tau-^posted,
+                   P_tau-,
+                   bond terms,
+                   default/restructuring state)
+
+    B_tau^real
+      = q_liq B_tau^def
+
+    E_tau
+      = (V_tau^co - B_tau^real)^+
+
+    CVA_0
+      = LGD Σ_i DF(0,t_i)
+          E[E_ti] ΔS_i.
+
+For the simple baseline implementation:
+
+    B_tau^def ≈ R_eff N_tau-^posted,
+
+but explicitly identify this as a reduced-form approximation to the market value of potentially much richer restructuring proceeds, not a universal law of sovereign recovery.
+
+The result should be concise enough to function as a methodology white paper, while the appendices contain the literature evidence, Greek case study, implementation investigation, regulatory discussion, and transaction-specific documentary support.
