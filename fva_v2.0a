@@ -1,0 +1,337 @@
+Please make a targeted correction to the newly added Section 6
+“Liability-Side Treatment: Dealer-Posted G10 Bond Collateral.”
+
+IMPORTANT: this instruction supersedes the liability-side methodology in my
+previous prompt.
+
+The previous instruction incorrectly made
+
+    q_repo^G10 B_post (r_CoF - r_repo^G10)
+
+the starting/base liability-side VA.
+
+That expression may describe an opportunity-cost component associated with
+encumbering an otherwise repoable G10 bond, but it is NOT the correct starting
+point for the liability-side FVA methodology because it loses the base
+valuation benchmark r_base.
+
+The liability side should instead be anchored in the standard/classic FVA
+treatment of a dealer funding a collateral-posting obligation.
+
+Please revise Section 6 accordingly.
+
+Do NOT modify the established asset-side methodology.
+
+================================================================
+1. START FROM THE CLASSIC CASH-COLLATERAL FVA BENCHMARK
+================================================================
+
+Define dealer liability exposure:
+
+    L_t = (-V_t)^+.
+
+When L_t > 0, the dealer owes collateral to the counterparty.
+
+The clean/base derivative valuation is collateral-independent and uses the
+approved clean discounting convention:
+
+    r_base = RFR
+
+(subject to the desk/methodology confirmation already discussed).
+
+The correct conceptual starting point is the standard cash-posting case.
+
+If the dealer were required to post L_t of cash and funds that cash at its
+marginal unsecured cost of funds r_CoF, then under the paper's sign convention
+(negative VA = cost):
+
+    VA_L^cash
+      = ∫ E[
+          DF_t
+          L_t (r_base,t - r_CoF,t)
+        ] dt.
+
+This is the classic liability-side FCA/FVA benchmark.
+
+Make this equation the anchor for the entire liability-side discussion.
+
+The economic interpretation is:
+
+    base valuation assumes funding at r_base
+        versus
+    actual dealer funding of the collateral posting at r_CoF.
+
+If r_CoF > r_base, the adjustment is negative.
+
+================================================================
+2. THEN INTRODUCE G10 BOND POSTING AS THE NON-CASH EXTENSION
+================================================================
+
+The actual transaction permits/requires the dealer to post eligible G10 bonds
+rather than cash.
+
+Let
+
+    q_CSA^G10
+
+be the CSA valuation percentage for the G10 collateral.
+
+Then:
+
+    B_t^post
+      = L_t / q_CSA^G10.
+
+Make clear:
+
+    q_CSA determines how much G10 bond market value must be posted.
+
+It does NOT by itself determine the funding cost.
+
+The methodological question is now:
+
+    How does satisfying the L_t collateral obligation with G10 bonds change
+    the dealer's funding economics relative to the classic cash-posting
+    benchmark?
+
+This should be treated as the non-cash extension of standard liability-side
+FVA, NOT as a completely separate opportunity-cost framework.
+
+================================================================
+3. CORRECT THE ROLE OF r_repo AND THE OPPORTUNITY-COST ARGUMENT
+================================================================
+
+Retain the useful observation from the previous draft that posting an owned
+G10 bond encumbers an asset that may otherwise have been repoable.
+
+If an unencumbered G10 bond could otherwise be repoed with:
+
+    q_repo^G10 = repo advance rate
+    r_repo^G10 = G10 repo rate,
+
+then the amount of repo funding capacity associated with the posted bond is:
+
+    F_t^repo
+      = q_repo^G10 B_t^post
+
+      = (q_repo^G10 / q_CSA^G10) L_t.
+
+Posting the bond removes that alternative secured-funding capacity.
+
+However, DO NOT present
+
+    F_t^repo (r_CoF - r_repo^G10)
+
+as the complete liability-side VA.
+
+It contains no r_base and therefore measures an incremental opportunity-cost
+comparison between secured and unsecured funding rather than the complete
+valuation adjustment relative to the base valuation.
+
+The paper should distinguish explicitly between:
+
+    A. the base-to-actual funding adjustment; and
+
+    B. any incremental opportunity cost associated with choosing/encumbering
+       G10 bonds rather than cash or another collateral form.
+
+Do not combine these mechanically until the precise Treasury/balance-sheet
+funding mechanics have been established.
+
+================================================================
+4. USE CASH POSTING AS A REQUIRED CONSISTENCY / LIMITING TEST
+================================================================
+
+Add an explicit methodological sanity check.
+
+Any general liability-side non-cash methodology must reduce to the standard
+cash result when collateral becomes cash or economically equivalent to cash:
+
+    VA_L^cash
+      = ∫ E[
+          DF_t
+          L_t (r_base - r_CoF)
+        ] dt.
+
+Therefore any proposed general formula that contains only
+
+    r_CoF - r_repo
+
+and no r_base cannot by itself represent the complete liability-side VA.
+
+Use this as a consistency condition on any subsequent G10 formulation.
+
+================================================================
+5. DO NOT OVER-DERIVE THE G10 EFFECT IN THIS PAPER
+================================================================
+
+For the present white paper, we only need a BASE-CASE liability-side
+discussion.
+
+Do not manufacture a detailed production model for G10 sourcing if the
+economics have not been confirmed.
+
+The section should establish:
+
+    (1) classic liability FVA starts from
+            L_t (r_base - r_CoF);
+
+    (2) G10 posting changes the actual funding economics because the dealer
+        posts securities rather than cash;
+
+    (3) for owned/readily sourced G10 bonds, the relevant incremental effect
+        can be viewed through the opportunity cost of encumbering otherwise
+        repoable securities;
+
+    (4) q_repo and r_repo therefore help characterize that opportunity cost,
+        but do not replace r_base as the valuation benchmark;
+
+    (5) the exact mapping from G10 encumbrance into an effective posting
+        funding rate should be confirmed with Treasury / methodology if the
+        liability side becomes material.
+
+If useful, introduce a generic effective posting funding rate:
+
+    r_post^G10
+
+and write the structurally correct general form as:
+
+    VA_L^G10
+      = ∫ E[
+          DF_t
+          L_t (r_base,t - r_post,t^G10)
+        ] dt.
+
+Then explain that determining r_post^G10 from repo opportunity cost,
+inventory/sourcing economics, haircuts and Treasury treatment is a separate
+implementation/calibration question.
+
+Do NOT assign a final formula for r_post^G10 unless it follows rigorously from
+the confirmed funding mechanics.
+
+================================================================
+6. CURRENT TRANSACTION: THIS IS LIKELY IMMATERIAL
+================================================================
+
+This remains an important part of the previous Section 6 and should be
+preserved.
+
+The liability-side adjustment is activated only by:
+
+    L_t = (-V_t)^+.
+
+Preliminary inspection of the swap exposure suggests dealer-negative exposure
+may be negligible for the current transaction.
+
+However, do not conclude this merely from positive expected exposure.
+
+Confirm using the negative-exposure profile, e.g.
+
+    ENE_t = E[(-V_t)^+],
+
+or the pathwise exposure distribution.
+
+If:
+
+    ENE_t ≈ 0,
+
+then:
+
+    B_t^post ≈ 0
+
+and therefore:
+
+    VA_L ≈ 0
+
+regardless of the finer distinction between cash funding and G10
+opportunity-cost treatment.
+
+This should be the practical conclusion for the current trade if confirmed.
+
+================================================================
+7. KEEP THE LIABILITY SECTION SHORT
+================================================================
+
+This correction should make Section 6 simpler, not longer.
+
+A clean structure would be:
+
+    6. Liability-Side Treatment
+
+    6.1 Classic cash-posting benchmark
+        L = (-V)^+
+        VA_L^cash = ∫ DF L(r_base-r_CoF) dt
+
+    6.2 G10 bond posting
+        B_post = L/q_CSA^G10
+        explain non-cash extension and encumbrance/opportunity cost
+
+    6.3 Current transaction
+        check ENE
+        if ENE ≈ 0 -> liability VA ≈ 0
+
+    6.4 Scope
+        detailed G10 sourcing / repo specialness / Treasury transfer pricing
+        outside scope unless liability exposure becomes material.
+
+Aim for approximately one page, or at most 1–2 pages.
+
+================================================================
+8. TERMINOLOGY / CURVE DISCIPLINE
+================================================================
+
+Maintain the following distinctions:
+
+    r_base / RFR
+        clean valuation and VA benchmark;
+
+    r_CoF
+        dealer marginal unsecured funding rate;
+
+    r_repo^G10
+        secured funding rate available against the G10 bond;
+
+    q_CSA^G10
+        contractual valuation percentage determining bond quantity;
+
+    q_repo^G10
+        repo advance rate determining secured funding capacity;
+
+    G10 bond yield / ASW
+        asset-pricing characteristic of the G10 security, NOT automatically
+        the swap discount rate or dealer funding rate.
+
+Do not introduce q_reg.
+
+Do not use the G10 bond ASW as the swap discount spread.
+
+Do not reintroduce RFR+5bp unless its economic meaning has separately been
+established.
+
+Most importantly, preserve the conceptual hierarchy:
+
+    BASE VALUATION
+        RFR / r_base
+            |
+            v
+    dealer liability exposure L=(-V)^+
+            |
+            v
+    collateral posting obligation
+            |
+       -------------
+       |           |
+      cash       G10 bond
+       |           |
+    classic      non-cash posting /
+    FCA          encumbrance economics
+       \           /
+        \         /
+            v
+    actual funding cost relative to r_base
+            |
+            v
+        liability-side VA
+
+Please explicitly correct any equations or prose introduced from the prior
+prompt that imply that (r_CoF-r_repo) alone is the complete liability-side
+valuation adjustment.
