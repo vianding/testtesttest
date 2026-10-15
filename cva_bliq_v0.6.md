@@ -323,3 +323,56 @@ Before delivery, perform a final consistency check:
 * Outstanding approvals are explicit.
 
 Final instruction: Deliver a controlled improvement to v0.5, not a new research program. Preserve the sound core model, improve the evidence-to-calibration explanation, remove unnecessary complexity, and make the result conceptually elegant, technically defensible and easy for a senior quant or desk reader to follow.
+
+## Additional mandatory instruction — Standalone publication standard
+
+Although this task uses Bliq v0.5 as the development baseline, the delivered Bliq v0.6 must be written as a **fully standalone technical working paper**, not as an incremental revision or commentary on an earlier draft.
+
+### Publication-facing requirements
+
+1. Write the document as if it were being presented independently to a senior quant, desk head, model validator, or implementation team with no access to earlier drafts.
+
+2. Do not refer to previous document versions, historical drafting decisions, changes from v0.5, or the revision process anywhere in the substantive text.
+
+3. Do not use phrases such as “in v0.6,” “the previous approach,” “this revision,” or “we now introduce,” unless the comparison concerns an economically meaningful alternative methodology rather than an earlier document draft.
+
+4. Version identification is permitted only in conventional document-control metadata, such as the title page or footer. Use a clean title:
+
+   **Bliq — Transaction Mechanics, Valuation and CVA Implementation**
+
+   Subtitle: *SPIRE Sovereign Collateral Working Paper*
+
+5. The executive conclusion must state the actual model, its principal results, its intended use, and its approval status—not summarize what changed.
+
+6. Every essential definition, assumption, formula, and conclusion must be understandable from the paper itself. Supporting research may be cited for detailed evidence, but the reader must not need another document to reconstruct the central valuation methodology.
+
+7. Maintain a clear hierarchy:
+   - Main paper: transaction economics, adopted methodology, essential empirical rationale, calibration, CVA interface, implementation and validation.
+   - Technical appendices: necessary derivations, numerical reconciliation and supporting model details.
+   - Standalone calibration paper: full empirical research, historical bond inventory, data selection and detailed diagnostics.
+
+8. Do not overpopulate the main text with implementation details or research that belong in appendices. Conversely, do not remove essential reasoning merely to achieve a shorter document.
+
+9. Maintain consistent notation with the companion CVA methodology and final calibration paper. Define symbols locally on first use, even when those symbols appear in supporting documents.
+
+10. Preserve professional academic and quantitative-finance conventions for equations, tables, citations and references. Distinguish primary transaction documentation, empirical datasets and academic literature.
+
+### Revised deliverables
+
+**A. Standalone Bliq working paper (PDF)**
+
+A publication-style, technically defensible, readable working paper suitable for independent senior quant/desk review. No revision commentary or change log inside the document.
+
+**B. Editable source**
+
+Complete LaTeX or equivalent source, including any figures, tables and bibliography needed to reproduce the PDF.
+
+**C. Internal change log (separate file)**
+
+A concise record of substantive changes from v0.5, preserved material, corrected issues, and outstanding questions. This is for development review only and must not be incorporated into the working paper.
+
+**D. Final quality review**
+
+Verify that the document stands on its own, contains no unintended drafting-history references, uses consistent notation, preserves the complete adopted methodology, and renders cleanly.
+
+**Acceptance test:** A senior quant unfamiliar with the drafting history should be able to read this paper from beginning to end and understand what is being valued, why the methodology is appropriate, how the calibration was selected, how it enters CVA, and which assumptions still require approval—without knowing that v0.5 or any earlier version existed.
