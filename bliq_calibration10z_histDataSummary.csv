@@ -1,0 +1,73 @@
+Event & Instrument Register,,,,,,,,,
+Attribute,Value,,,,,,,,
+Price source,Bloomberg BVAL evaluated composite,,,,,,,,
+Executability,Indicative only — not executable,,,,,,,,
+Price basis,"Clean price per 100 face value, USD",,,,,,,,
+Fill-forward,"None — missing dates are gaps, not carried values",,,,,,,,
+Transaction prices,Not available — PX_LAST = PX_MID for all observations,,,,,,,,
+Accrued interest,Not included in any price; must be sourced separately via INT_ACC,,,,,,,,
+BVAL-to-executable adjustment,Model assumption only; suggested range 2–5 pts for distressed sovereigns,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+Instrument Register,,,,,,,,,
+#,Country,Episode,Bloomberg ID,ISIN,Bond Name,Series,Classification,Correct Series,Action Required
+1,Zambia,2020 Default,AF279136 Corp,US988895AF56,ZAMBIN 8.97% 07/30/27,1,? Legacy,Series 1,None
+2,Zambia,2020 Default,EK146313 Corp,US988895AE81,ZAMBIN 8.50% 04/14/24,1,? Legacy,Series 1,None
+3,Zambia,2020 Default,EJ363895 Corp,US988895AA69,ZAMBIN 5.375% 09/20/22,1,? Legacy,Series 1,?? Matured Sep 2022 during restructuring — valid for 2020 event window only; diverges post-maturity
+4,Zambia,2024 Exchange,YX630529 Corp,XS2837240261,ZAMBIN 5.75% 06/30/33,2,? New bond,Series 2,None
+5,Zambia,2024 Exchange,YX633359 Corp,XS2837240428,ZAMBIN 0.5% 12/31/53,2,? New bond,Series 2,None
+6,Ghana,2022 Default,AX753113 Corp,US37443GAA94,GHANA 7.875% 03/26/27,1,? Legacy,Series 1,?? Flat-trading from 2022-12-19; no accrued separately payable from that date
+7,Ghana,2022 Default,AX753225 Corp,US37443GAB77,GHANA 8.125% 03/26/32,1,? Legacy,Series 1,?? Flat-trading from 2022-12-19; no accrued separately payable from that date
+8,Ghana,2022 Default,AX753332 Corp,US37443GAC50,GHANA 8.95% 03/26/51,1,? Legacy,Series 1,?? Flat-trading from 2022-12-19; no accrued separately payable from that date
+9,Ghana,2024 Exchange,YU287942 Corp,XS2893147251,GHANA 5% 07/03/29,2,? New bond,Series 2,None
+10,Ghana,2024 Exchange,YU288058 Corp,XS2893147681,GHANA 0% 01/03/30,2,? New bond,Series 2,None
+11,Ghana,2024 Exchange,YU288914 Corp,XS2893151287,GHANA 5% 07/03/35,2,? New bond,Series 2,None
+12,Ghana,2024 Exchange,YU287855 Corp,XS2893165584,GHANA 1.5% 01/03/37,2,? New bond,Series 2,?? 10-pt B-A on 2024-10-09; use 2024-10-10 bid of 41.097 as reference price
+13,Ecuador,2020 Exchange,EC283493 Corp,US27927WAD48,ECUA 10% 08/15/30,1,? Legacy,Series 1,?? Defaulted flag confirmed True; event date corrected to 2020-04-17; Apr–May window gap remains
+14,Ecuador,2020 Exchange,AP641831 Corp,XS1707041429,ECUA 5.5% 07/31/40,1,? Legacy,Series 1,?? Reclassified Series 2 ? Series 1 ; trough bid ~19.5c on 2020-03-27; event date 2020-04-17; Apr–May window gap remains
+15,Ecuador,2020 Exchange,TT318345 Corp,XS0055571789,ECUA Float 02/28/25,—,?? Legacy but stale,Exclude,? Flat BVAL throughout — not credible; do not use in primary analysis
+16,Ecuador,2020 Exchange,TT318346 Corp,XS0055572084,ECUA 5% 02/28/25,—,?? Legacy but stale,Exclude,? Flat BVAL throughout — not credible; do not use in primary analysis
+17,Argentina,2020 Exchange,AM209625 Corp,US040114HH60,ARGENT 5.625% 01/26/22,1,? Legacy,Series 1,?? Event-date bid confirmed 37.087 on 2020-05-22; pre-deal window retrieved Jul–Sep 2020
+18,Argentina,2020 Exchange,AM213571 Corp,US040114HJ27,ARGENT 6.875% 01/26/27,1,? Legacy,Series 1,?? Event-date bid ~36c on 2020-05-22; pre-deal window retrieved Jul–Sep 2020
+19,Argentina,2020 Exchange,AM901547 Corp,US040114GW47,ARGENT 6.875% 04/22/21,1,? Legacy,Series 1,?? Event-date bid ~37c on 2020-05-22; pre-deal window retrieved Jul–Sep 2020
+20,Ukraine,2015 Exchange,EF856766 Corp,US903724AB80,UKRAIN 6.58% 11/21/16,1,? Legacy,Series 1,?? Matured Nov 2016 — 12 months post-settlement; T=0 options: Aug 25 (trough ~53.5c) or Oct 5 (ISDA ~78c)
+21,Ukraine,2015 Exchange,EJ228115 Corp,US903724AD47,UKRAIN 9.25% 07/24/17,1,? Legacy,Series 1,?? Matured Jul 2017 — 20 months post-settlement; same T=0 options as row 20
+22,Ukraine,2015 Exchange,EK000542 Corp,US903724AH50,UKRAIN 5% 12/20/15,1,? Legacy,Series 1,?? Matured 2015-12-20 — only 38 days post-settlement (2015-11-12); flag as near-maturity; pricing diverges from longer-dated bonds near maturity
+23,Ukraine,2024 Exchange,AP074417 Corp,US903724BM37,UKRAIN 7.375% 09/25/34,1,? Legacy,Series 1,?? T=0 = 2022-08-12 (S&P/Fitch SD/RD); event-date bid ~19.3c
+24,Ukraine,2024 Exchange,AV188965 Corp,US903724BV36,UKRAIN 9.75% 11/01/30,1,? Legacy,Series 1,?? T=0 = 2022-08-12; event-date bid ~22c
+25,Ukraine,2024 Exchange,AV266724 Corp,US903724BW19,UKRAIN 8.994% 02/01/26,1,? Legacy,Series 1,?? T=0 = 2022-08-12; event-date bid ~22c
+26,Ukraine,2024 Exchange,BK633908 Corp,US903724BY74,UKRAIN 7.253% 03/15/35,1,? Legacy,Series 1,?? T=0 = 2022-08-12; event-date bid ~19c
+27,Greece,2012 PSI,CP507291 Corp,GR0128001584,GGB 7.5% 05/20/13,1,? Legacy,Series 1,? BVAL bid confirmed (20.625 on 2012-03-09); prices cease after 2012-03-12 — bonds cancelled post-PSI; wide B-A 2–4 pts; apply larger BVAL-to-executable haircut than EM episodes
+,,,,,,,,,
+Event Date Register,,,,,,,,,
+Country,Episode,Credit Event Date (T=0),Event Type,Settlement Date,BD Gap (Event ? Settlement),Calendar Used,Secondary Reference Date,Notes,
+Zambia,2020 Default,11/13/2020,Grace period expiry; legal default; bondholders rejected payment holiday,6/11/2024,~910 BD,New York,2020-10-14 (missed coupon — distress onset),? Unchanged,
+Ghana,2022 Default,12/19/2022,External payment suspension on $13bn Eurobonds,10/9/2024,~470 BD,New York / London,2022-12-05 (domestic default — do not use for external bonds),? Unchanged; EMTA flat-trading applies from T=0,
+Ecuador,2020 Exchange,4/17/2020,Fitch downgrade to RD; consent solicitation deemed distressed debt exchange,8/31/2020,~95 BD,New York,2020-03-27 (moratorium onset; AP641831 trough bid ~19.5c),?? Corrected from 2020-05-28; Mar 27 retained as secondary reference for lowest observed bid,
+Argentina,2020 Exchange,5/22/2020,Grace period expiry; ninth default declared; no payment made,9/4/2020,~75 BD,New York,2020-04-22 (grace period invocation),? Unchanged; event-date bid AM209625 = 37.087,
+Ukraine,2015 Exchange,2015-08-25 (distressed trough) or 2015-10-05 (ISDA),Distressed price trough (Aug 25) or ISDA failure-to-pay ruling (Oct 5),11/12/2015,~55 BD (from Aug 25) or 27 BD (from Oct 5),New York,2015-08-27 (deal announcement — do not use as T=0; prices already recovering),?? Must choose one date and apply consistently — 25-point difference in bid prices between the two options,
+Ukraine,2024 Exchange,8/12/2022,S&P and Fitch downgrade to SD/RD; payment freeze confirmed,8/30/2024,~530 BD,New York,2022-08-10 (bondholder approval of payment freeze — one business day earlier),?? Corrected from 2022-08-01; either Aug 10 or Aug 12 defensible — document choice,
+Greece,2012 PSI,3/9/2012,CAC triggered; ISDA ruled restructuring credit event; $3bn CDS triggered,3/9/2012,0 BD,New York,2012-03-19 (CDS auction; recovery set at 21.5c — independent market reference),? Unchanged; CDS auction recovery of 21.5c consistent with BVAL bid of 20.625,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
