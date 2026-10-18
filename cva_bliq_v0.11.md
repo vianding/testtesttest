@@ -780,3 +780,41 @@ If the evidence shows that a deterministic scalar is sufficiently accurate for t
 If the scenario distribution materially changes loss, preserve it internally without transferring unnecessary calibration complexity to traders.
 
 **The desired result is not the most elaborate sovereign recovery model. It is the simplest defensible model for the actual SPIRE CVA decision, with a clear economic interpretation, sound mathematical behavior, credible supporting evidence and practical trader usability.**
+
+
+## Amendment to Bliq v0.11 — Updated Numerical Illustration
+
+Please update the v0.11 numerical illustration to use:
+
+- Pool nominal: €51m
+- Index ratio: 1.3195
+- Indexed collateral face: €67.2945m
+- **Present value of Dealer close-out: €24.3m**, replacing the previous €19.62m illustrative close-out.
+
+The €24.3m is a revised illustrative input, not a newly verified transaction mark.
+
+### Required updates
+
+1. Recalculate the break-even recovery threshold:
+
+   \[
+   R^*=\frac{24.3}{67.2945}\approx36.11\%.
+   \]
+
+2. Recalculate all statewise losses, probability-weighted expected losses, deterministic-recovery comparisons and loss-equivalent recovery figures using the updated input and the final v0.11 recovery calibration.
+
+3. Update the M0-versus-M1 comparison and any charts or sensitivity tables dependent on the close-out value.
+
+4. Explain that the revised threshold falls within the central range of historical distressed recovery observations, making the positive-part loss nonlinearity particularly relevant to the model-selection decision.
+
+5. Use €24.3m consistently throughout the executive summary, main text, appendices and numerical examples. Remove obsolete €19.62m figures unless explicitly retained as a labeled historical comparison.
+
+### Valuation consistency
+
+The supplied €24.3m is a **present value**. Ensure that the close-out and liquidation proceeds are expressed on the same valuation date and discounting basis before applying the positive-part loss formula.
+
+If the existing methodology defines \(V_\tau^{co}\) at the default-event date rather than today, distinguish that event-date value from its present value. Do not substitute today's PV directly into an event-date loss formula without the appropriate valuation-date reconciliation.
+
+Do not discount the same amount twice.
+
+Keep the revised €24.3m illustration separate from any independently verified transaction exposure or production CVA calculation.
