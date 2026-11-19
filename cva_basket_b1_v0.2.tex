@@ -1,0 +1,54 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=16mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,amsmath,amssymb,booktabs,tabularx,xcolor,enumitem,microtype,array}
+\definecolor{navy}{HTML}{18364C}\definecolor{muted}{HTML}{526574}\definecolor{pale}{HTML}{EDF3F6}
+\setlength{\parindent}{0pt}\setlength{\parskip}{3pt}
+\setlist[itemize]{leftmargin=15pt,itemsep=2pt,topsep=2pt,parsep=0pt}
+\pagestyle{empty}
+\newcommand{\heading}[1]{\vspace{5pt}{\large\bfseries\color{navy}#1}\par\vspace{2pt}}
+\newcommand{\Q}{\mathbb Q}
+\begin{document}
+{\small\color{muted} QUANT RESEARCH / DISCUSSION NOTE \hfill 19 November 2026}\par
+{\LARGE\bfseries\color{navy} B1: Partial-Redemption CVA}\par
+{\color{muted} SPIRE multi-bond collateral \hfill v0.2}\par\vspace{3pt}\hrule\vspace{7pt}
+\noindent\colorbox{pale}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\textbf{Proposed baseline:} Two issuer credit curves, four bond-specific losses. Common default time within each issuer; selective bond default as a challenger.}}\par
+\heading{1. Structure and assumptions}
+\renewcommand{\arraystretch}{1.10}
+\begin{tabularx}{\linewidth}{@{}lXXl@{}}\toprule
+\textbf{Issuer} & \textbf{Collateral} & \textbf{Linked swap slices} & \textbf{Proxy default time}\\\midrule
+Quebec & A, B & 25\% each & $\tau_Q$\\
+Alberta & C, D & 25\% each & $\tau_P$\\\bottomrule
+\end{tabularx}
+\begin{itemize}
+\item One Series; bond default $\rightarrow$ linked slice redemption (bespoke terms).
+\item Separate slice settlement, dedicated collateral, final limited recourse; no cross-slice netting or recovery sharing.
+\item Homogeneous swap cash flows per unit notional: $V_{i,t}^{\rm co}=w_iV_t^{\rm co}$.
+\end{itemize}
+\heading{2. CVA methodology}
+\setlength{\abovedisplayskip}{5pt}\setlength{\belowdisplayskip}{5pt}
+\begin{align*}
+L_i(t)&=\left[w_iV_t^{\rm co}-\left[B_{i,t}^{\rm liq}(N_i)-K_{i,t}^{\rm sen}\right]^+\right]^+,\\
+\mathrm{CVA}_{B1}&=\sum_{i\in\{A,B,C,D\}}\mathbb E^{\Q}\!\left[D(0,\tau_i)L_i(\tau_i)\mathbf1_{\{\tau_i\le T\}}\right],\\
+&\approx\sum_{i,k}\mathbb E^{\Q}[D(0,t_k)L_i(t_k)]\,[S_i(t_{k-1})-S_i(t_k)].
+\end{align*}
+{\small $B^{\rm liq}$: bond-specific event-date realization; $K^{\rm sen}$: senior deductions; $S_i$: trigger survival proxy. Common claim/recovery valuation basis assumed. No second CSA deduction or residual LGD multiplier.\par}
+\begin{itemize}
+\item \textbf{Baseline weights:} $S_A=S_B=S_Q$, $S_C=S_D=S_P$; deterministic bucket weights.
+\item \textbf{WWR extension:} conditional survival weights inside expectation; event-conditioned loss consistent with simulated factors.
+\item \textbf{Correlation:} additive CVA unchanged by default dependence alone, holding marginal joint default/loss laws fixed.
+\end{itemize}
+\heading{3. Model choice and decision gates}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{.27\linewidth}X@{}}\toprule
+\textbf{Information needed} & \textbf{Check / decision}\\\midrule
+Executed Series, swap, CSA & Security trigger; partial ETA; slice collateral and priority; final extinguishment. Shared recovery $\Rightarrow$ B2.\\
+Four bond terms & Obligor, guarantee, ranking, law, currency, payment/grace dates, cross-default, restructuring.\\
+Market / historical data & Provincial curves; bond basis and distressed recovery; evidence of selective default.\\
+Prototype tests & Common vs selective triggers; deterministic vs conditional weights; correlation invariance benchmark.\\\bottomrule
+\end{tabularx}
+\par\vspace{4pt}
+\textbf{Challenger:} issuer event with security-specific impact and subsequent trigger law for survivors; preserve issuer-curve calibration (no duplicated independent issuer hazards).
+\vspace{5pt}\hrule\vspace{4pt}
+\textbf{Discussion decision:} Approve baseline for prototyping? Escalate to selective-default or WWR model only if contractual or pricing impact is material.\\[-1pt]
+{\footnotesize\color{muted} Basis: single-bond Pricing CVA methodology; Multi-Bond CVA v0.2; 2026 SPIRE Conditions 3, 8(c), 15, 17. B1 is hypothetical; assumptions and calibration remain unconfirmed.}
+\end{document}
