@@ -1,0 +1,70 @@
+Task: Bond Pathwise Valuation Architecture — Implementation Reference
+
+Please prepare a concise technical document describing the current draft implementation of bond valuation inside the FFF Monte Carlo XVA engine, including sensitivity propagation and calibration Jacobians.
+
+Objective: Create a reliable implementation reference that another quant developer can read to understand the existing code, trace its main interfaces, and identify current limitations.
+
+This is a codebase documentation task, not a Repack methodology review or a proposal for redesign.
+
+Scope
+
+1. Architecture and construction
+
+* Identify the nominal and inflation-linked bond value-function classes, their parent classes, and the relevant factories.
+* Explain bond recognition, portfolio conversion, routing, and construction.
+* Show how the existing parent valuation functions are reused and what the bond-specific children add or override.
+* Include the principal source files and functions.
+
+2. Pathwise valuation
+
+Trace the lifecycle from value-function construction through registration, preprocessing, pathwise valuation and exposure output.
+
+Explain:
+
+* Which simulated state variables and indices are consumed.
+* How funding curves and bond-specific spread (s^*) enter discounting.
+* How bond cashflows, face value, inflation adjustments and FX are evaluated.
+* How valuation differs between bond-as-product and bond-as-collateral.
+* Where the calculated MtM is passed to the MC exposure engine.
+
+Include a concise mathematical expression for the implemented valuation, with relevant discounting conventions. No general financial theory is needed.
+
+3. Risk sensitivities and Jacobians
+
+Trace the implemented FIRSTORDERRISK_CVA sensitivity path for the bond value functions.
+
+Specifically explain:
+
+* valueAndIndexSensitivities and computePathSensitivities, including which classes implement or inherit them.
+* Path-dependent versus path-independent gradients.
+* How bond valuation sensitivities enter the MC aggregation/AAD infrastructure.
+* Which sensitivities are mapped through existing model calibration Jacobians.
+* Which bond-specific inputs currently have no native AAD or market-quote risk.
+* How spread mode and price-calibrated mode differ between AAD and bump-and-revalue.
+
+Distinguish sensitivities to simulated states, model parameters, and market calibration quotes. Identify whether the relevant Jacobians are implemented, inherited, missing, or only proposed.
+
+4. Implementation status and limitations
+
+Describe the state of the specified working branch, distinguishing:
+
+* Implemented code.
+* Successfully built or runtime-tested behavior.
+* Code implemented but not fully validated.
+* Experimental spikes.
+* Proposed work that is not part of the current implementation.
+
+In particular, briefly summarize the status of the bond-specific yield-curve extension (BOND_YC_EXTENSION), hybrid-model resolution, price calibration, and market-risk mapping. Do not assume that the proposed placement of (s^*) is final.
+
+Evidence and presentation
+
+* Base the document on direct source-code inspection. Use the exact branch/commit and inspection date.
+* Provide source filenames, function names and relevant line references.
+* Include one compact call-flow diagram and, where useful, a small table mapping inputs to valuation and sensitivity outputs.
+* Clearly distinguish source-verified facts from inference.
+* Do not claim functionality was tested unless an actual test result or log confirms it.
+* Do not repeat general XVA architecture, model hierarchy, default simulation, multi-name credit modeling, or Repack methodology.
+* Avoid historical design debates except where necessary to explain the current implementation.
+* Target approximately 3–4 pages, prioritizing technical clarity and density over completeness.
+
+Desired outcome: A concise, code-grounded reference that establishes exactly what bond pathwise valuation and sensitivity functionality exists today, how it works, and what remains unverified.
